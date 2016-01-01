@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import time
 import sys
-from pysovo.comms import email
-from pysovo.comms.email import keys as acc_keys
-from pysovo.local import contacts
+from fourpisky.comms import email
+from fourpisky.comms.email import keys as acc_keys
+from fourpisky.local import contacts
 import base64
 from imbox import Imbox
 
@@ -29,7 +29,7 @@ def main():
 
     print "Sending new test-mail..."
     email.send_email(recipient_addresses=account[acc_keys.username],
-                     subject="[TEST] PYSOVO INTEGRATION TEST",
+                     subject="[TEST] fourpisky INTEGRATION TEST",
                      body_text="Ima firin mah lazers!"
                      )
 

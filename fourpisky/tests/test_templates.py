@@ -1,12 +1,12 @@
 import unittest
-from pysovo.tests.resources import greenwich
-from pysovo.visibility import get_ephem
-from pysovo.formatting import datetime_format_long, format_datetime
+from fourpisky.tests.resources import greenwich
+from fourpisky.visibility import get_ephem
+from fourpisky.formatting import datetime_format_long, format_datetime
 
 import jinja2
 from jinja2 import Environment, PackageLoader
 
-env = Environment(loader=PackageLoader('pysovo', 'templates'),
+env = Environment(loader=PackageLoader('fourpisky', 'templates'),
                   trim_blocks=True)
 env.filters['datetime'] = format_datetime
 

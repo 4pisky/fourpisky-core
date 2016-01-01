@@ -2,12 +2,12 @@ from __future__ import absolute_import
 import smtplib
 import sendgrid
 from sendgrid import SendGridClient
-import pysovo as ps
+import fourpisky as ps
 import logging
 
 logger = logging.getLogger(__name__)
 
-from pysovo.local import contacts
+from fourpisky.local import contacts
 
 
 class EmailConfigKeys():

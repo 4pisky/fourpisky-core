@@ -1,5 +1,5 @@
 """Various bits of logic designed to filter out unwanted VOEvent alerts"""
-from pysovo.visibility import DEG_PER_RADIAN
+from fourpisky.visibility import DEG_PER_RADIAN
 
 class ami:
     @staticmethod

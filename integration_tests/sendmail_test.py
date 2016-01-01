@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import logging
 import time
-from pysovo.comms import email
-from pysovo.local import contacts
+from fourpisky.comms import email
+from fourpisky.local import contacts
 logging.basicConfig(level=logging.DEBUG)
 
 def main():

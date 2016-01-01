@@ -3,7 +3,7 @@ Convenience routines and data structures useful for dealing with Swift packets.
 """
 
 import voeventparse
-from pysovo.utils import convert_voe_coords_to_eqposn
+from fourpisky.utils import convert_voe_coords_to_eqposn
 
 
 def swift_bool(bstring):

@@ -1,7 +1,7 @@
 from unittest import TestCase
 import voeventparse
-from pysovo.triggers import swift
-from pysovo.tests.resources import datapaths
+from fourpisky.triggers import swift
+from fourpisky.tests.resources import datapaths
 
 class TestSwiftGrbFilters(TestCase):
     def setUp(self):

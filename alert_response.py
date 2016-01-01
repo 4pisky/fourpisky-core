@@ -6,12 +6,12 @@ import logging
 import subprocess
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-from pysovo.local import contacts
-from pysovo.visibility import get_ephem
-from pysovo.triggers import swift
-from pysovo.triggers import is_test_trigger
-from pysovo.voevent import ivorn_base
-import pysovo as ps
+from fourpisky.local import contacts
+from fourpisky.visibility import get_ephem
+from fourpisky.triggers import swift
+from fourpisky.triggers import is_test_trigger
+from fourpisky.voevent import ivorn_base
+import fourpisky as ps
 import amiobs
 
 from jinja2 import Environment, PackageLoader
@@ -28,7 +28,7 @@ default_archive_root = os.path.join(os.environ["HOME"],
 
 active_sites = [amiobs.site]
 
-env = Environment(loader=PackageLoader('pysovo', 'templates'),
+env = Environment(loader=PackageLoader('fourpisky', 'templates'),
                   trim_blocks=True,lstrip_blocks=True)
 env.filters['datetime'] = ps.formatting.format_datetime
 env.filters['rad_to_deg'] = ps.formatting.rad_to_deg

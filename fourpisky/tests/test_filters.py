@@ -1,8 +1,8 @@
 from unittest import TestCase
 import voeventparse
-from pysovo.utils import convert_voe_coords_to_eqposn
-import pysovo.filters as filters
-from pysovo.tests.resources import datapaths
+from fourpisky.utils import convert_voe_coords_to_eqposn
+import fourpisky.filters as filters
+from fourpisky.tests.resources import datapaths
 
 class TestAmiTargetFilters(TestCase):
     def test_low_dec(self):

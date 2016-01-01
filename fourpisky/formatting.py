@@ -1,6 +1,6 @@
 """Various code snippets used for formatting and generating messages"""
 from __future__ import absolute_import
-from pysovo.visibility import DEG_PER_RADIAN
+from fourpisky.visibility import DEG_PER_RADIAN
 #----------------------------------------------------
 datetime_format_long = "%Y-%m-%d %H:%M:%S (%A)"
 datetime_format_short = '%y%m%d-%H%M.%S'

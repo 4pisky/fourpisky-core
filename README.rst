@@ -1,24 +1,24 @@
 ======
-pysovo
+fourpisky
 ======
 
 Basic tools to do things with VOEvents. 
 (e.g. pick out certain events, then send email alerts or new VOEvents, etc.)
 
-pysovo is not really meant as a general release, it is very much tailored
+fourpisky is not really meant as a general release, it is very much tailored
 to our specific needs. However, it may serve as a reference example to others
 wishing to get started with VOEvents. 
 (And if you want to send custom formatted emails, it's your lucky day.)
 
-For an example of how pysovo is being applied, see
+For an example of how fourpisky is being applied, see
 `Staley et al (2012) <http://ukads.nottingham.ac.uk/abs/2012arXiv1211.3115S>`_.
 
 Installation:
 -------------
 From the command line::
 
- git clone git@github.com:timstaley/pysovo.git
- cd pysovo
+ git clone git@github.com:timstaley/fourpisky.git
+ cd fourpisky
  pip install .
 
 
@@ -46,7 +46,7 @@ will also be weakly obfuscated using base64 encoding.
 Testing:
 --------
 There are currently a few unit tests, try 
-nosetests -svx from the ``pysovo`` package folder.
+nosetests -svx from the ``fourpisky`` package folder.
 
 Also see the ``integration_tests`` folder - the easiest way to get these to 
 run prior to installation is to use ipython from the root project folder, 

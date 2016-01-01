@@ -1,9 +1,9 @@
 from __future__  import absolute_import
 from unittest import TestCase
 import voeventparse
-from pysovo.utils import convert_voe_coords_to_eqposn
-from pysovo.tests.resources import datapaths
-from pysovo.visibility import DEG_PER_RADIAN
+from fourpisky.utils import convert_voe_coords_to_eqposn
+from fourpisky.tests.resources import datapaths
+from fourpisky.visibility import DEG_PER_RADIAN
 import ephem
 
 class TestCoordConversion(TestCase):

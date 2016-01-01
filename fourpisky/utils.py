@@ -5,7 +5,7 @@ from __future__ import absolute_import
 import os
 from collections import Sequence
 from ephem import Equatorial, J2000
-from pysovo.visibility import DEG_PER_RADIAN
+from fourpisky.visibility import DEG_PER_RADIAN
 import voeventparse
 
 def listify(x):

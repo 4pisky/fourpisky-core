@@ -1,6 +1,6 @@
 from __future__ import absolute_import
-import pysovo.triggers.swift
-from pysovo.voevent import ivorn_base, test_trigger_substream
+import fourpisky.triggers.swift
+from fourpisky.voevent import ivorn_base, test_trigger_substream
 
 
 

@@ -1,9 +1,9 @@
 from __future__ import absolute_import
 import unittest
-from pysovo.tests.resources import greenwich
-import pysovo.visibility as vis
-from pysovo.visibility import TargetStatusKeys as tkeys
-from pysovo.visibility import DEG_PER_RADIAN
+from fourpisky.tests.resources import greenwich
+import fourpisky.visibility as vis
+from fourpisky.visibility import TargetStatusKeys as tkeys
+from fourpisky.visibility import DEG_PER_RADIAN
 
 
 class TestPyEphemSiteVisibilityCalcs(unittest.TestCase):

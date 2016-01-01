@@ -1,9 +1,9 @@
-#pysovo VOEvent Tools
+#fourpisky VOEvent Tools
 #Tim Staley, <timstaley337@gmail.com>, 2012
 from __future__ import absolute_import
 import datetime, pytz
 import ephem
-from pysovo.visibility import DEG_PER_RADIAN
+from fourpisky.visibility import DEG_PER_RADIAN
 """An example obs_site initialization, with equatorial positions of known
 transit time, etc, for unit testing purposes."""
 

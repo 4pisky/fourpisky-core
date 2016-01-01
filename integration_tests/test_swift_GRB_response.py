@@ -5,7 +5,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 #Minimal imports here - ensures proper testing of alert_response.
 #(If not careful you might temporarily fix a broken import - which then remains broken)
-from pysovo.tests.resources import datapaths
+from fourpisky.tests.resources import datapaths
 import alert_response as ar
 ##We bind the email sender to a dummy function:
 ar.ps.comms.email.send_email = ar.ps.comms.email.dummy_email_send_function

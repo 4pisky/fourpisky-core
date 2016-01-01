@@ -13,9 +13,9 @@ import glob
 import httplib
 import urllib
 
-import pysovo.utils as utils
+import fourpisky.utils as utils
 
-default_sms_config_file = "".join((os.environ['HOME'], "/.pysovo/sms_acc"))
+default_sms_config_file = "".join((os.environ['HOME'], "/.fourpisky/sms_acc"))
 
 class SMSConfigKeys():
     user = 'username'
