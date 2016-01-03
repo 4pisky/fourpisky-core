@@ -16,17 +16,19 @@ For an example in the literature fourpisky being applied, see
 Features
 ---------
 
-- VOEvent filtering and custom actions
+- VOEvent filtering and custom actions based on per-observatory follow-up
+  criteria.
 - Custom email notifications with site-reports for designated observatories
-  (including calculated rise / set / transit times, etc)
-- VOEvent creation to a standard template
-- Reasonably complete test suite
+  (including calculated rise / set / transit times, etc).
+- VOEvent creation to a standard template.
+- Reasonably complete test suite with 'safety switches' to avoid false triggers
+  during testing.
 
 
 Instructions
 ------------
 There are none - this is not intended for general consumption and documentation
-requires effort to maintain.
+requires time and effort to maintain.
 However, feel free to `contact me`_ 
 with any questions.
 

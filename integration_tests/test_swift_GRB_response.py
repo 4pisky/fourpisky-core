@@ -14,24 +14,31 @@ test_prefix = "[LOCALTEST] "
 if ar.notification_email_prefix[:len(test_prefix)]!=test_prefix:
     ar.notification_email_prefix = test_prefix + ar.notification_email_prefix
 ar.grb_contacts = ar.contacts.test_contacts  # Only notify test contacts
-ar.amiobs.email_address = 'blocked!' + ar.amiobs.email_address  # Do NOT email AMI
+ar.amicomms.email_address = 'blocked!' + ar.amicomms.email_address  # Do NOT email AMI
 ar.default_archive_root = "./"
 
 def main():
     def test_packet(path):
         with open(path) as f:
             ar.voevent_logic(ar.voeventparse.load(f))
+
+    hr = "********************************************************************"
+    print hr
     print "Sometimes visible source:"
     test_packet(datapaths.swift_bat_grb_pos_v2)
     ##Now a circumpolar source:
+    print hr
     print "Always visible source:"
     test_packet(datapaths.swift_bat_grb_circumpolar)
     ##Now test one with null follow-up:
+    print hr
     print "Never visible source:"
     test_packet(datapaths.swift_bat_grb_low_dec)
     ##Now test one with bad star tracking:
+    print hr
     print "Bad source:"
     test_packet(datapaths.swift_bat_grb_lost_lock)
+    print hr
     print "Known source:"
     test_packet(datapaths.swift_bat_known_source)
 

@@ -11,22 +11,23 @@ from fourpisky.visibility import get_ephem
 from fourpisky.triggers import swift
 from fourpisky.triggers import is_test_trigger
 from fourpisky.voevent import ivorn_base
+from fourpisky.sites import AmiLA, Pt5m
 import fourpisky as ps
-import amiobs
+import amicomms
 
 from jinja2 import Environment, PackageLoader
 
 #-------------------------------------------------------------------------------
 grb_contacts = contacts.grb_contacts
 
-amiobs.email_address = contacts.test_contacts[0].email
+amicomms.email_address = contacts.test_contacts[0].email
 
 notification_email_prefix = "[4 Pi Sky] "
 
 default_archive_root = os.path.join(os.environ["HOME"],
                                     "voevent-deploy","voe_archive")
 
-active_sites = [amiobs.site]
+active_sites = [AmiLA, Pt5m]
 
 env = Environment(loader=PackageLoader('fourpisky', 'templates'),
                   trim_blocks=True,lstrip_blocks=True)
@@ -73,7 +74,7 @@ def swift_bat_grb_logic(v):
                 logger.error(emsg)
                 raise
         else:
-            actions_taken.append('Target rejected by ami: ' + ami_reject)
+            actions_taken.append('Target unsuitable for ami: ' + ami_reject)
     else:
         actions_taken.append('Alert ignored: ' + alert_rejection)
 
@@ -88,17 +89,17 @@ def trigger_ami_swift_grb_alert(alert):
     comment = alert.id + " / " + alert.inferred_name
     duration = datetime.timedelta(hours=2.)
 
-    ami_request = amiobs.request_email(
+    ami_request = amicomms.request_email(
                    target_coords=alert.position,
                    target_name=target_name,
                    duration=duration,
                   timing='ASAP',
                   action='CHECK',
-                  requester=amiobs.default_requester,
+                  requester=amicomms.default_requester,
                   comment=comment)
 
-    ps.comms.email.send_email(recipient_addresses=amiobs.email_address,
-                              subject=amiobs.request_email_subject,
+    ps.comms.email.send_email(recipient_addresses=amicomms.email_address,
+                              subject=amicomms.request_email_subject,
                               body_text=ami_request)
 
 
