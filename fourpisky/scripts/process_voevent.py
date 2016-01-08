@@ -38,7 +38,7 @@ env.filters['rad_to_deg'] = fps.formatting.rad_to_deg
 #-------------------------------------------------------------------------------
 
 @click.command()
-def main():
+def cli():
     stdin_binary = click.get_binary_stream('stdin')
     v = voeventparse.loads(stdin_binary.read())
     voevent_logic(v)

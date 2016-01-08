@@ -1,0 +1,1 @@
+from fourpisky.feeds.assasn import AssasnFeed

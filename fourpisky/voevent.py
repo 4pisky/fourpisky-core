@@ -3,6 +3,9 @@ from __future__ import absolute_import
 import voeventparse as vp
 import datetime
 from copy import copy
+from fourpisky._version import get_versions
+
+fpsversion = get_versions()['version']
 
 
 ivorn_base = 'voevent.4pisky.org'
@@ -14,19 +17,37 @@ datetime_format_short = '%y%m%d-%H%M.%S'
 def create_skeleton_4pisky_voevent(substream, stream_id,
                                    role=vp.definitions.roles.test,
                                    date=None):
+    """
+    Create a basic empty VOEvent with valid author details
+
+    Args:
+        substream (str): Comes after the domain, before the #
+            E.g. 'ALARRM-REQUEST' or 'TEST-TRIGGER'
+        stream_id (str):  ID within this stream, may be some combination
+            of timestamp and / or unique ID.
+        role (str): Voevent role
+        date (datetime): 'Author date' to assign, typically current time
+            at VOEvent generation.
+
+    """
     author_ivorn = ivorn_base+'/robots'
     if date is None:
         date = datetime.datetime.utcnow()
 
     v = vp.Voevent(stream=ivorn_base+ '/' + substream,
                stream_id=stream_id, role=role)
-
+    v.Who.Description = (
+        "VOEvent created by 4PiSky bot, version {}. "
+        "See https://github.com/4pisky/fourpisky-core for details.".format(
+                fpsversion))
     vp.set_who(v, date=date,
                author_ivorn=author_ivorn)
+
     vp.set_author(v,
                   shortName="4PiSkyBot",
                   contactName="Tim Staley",
-                  contactEmail="tim.staley@physics.ox.ac.uk"
+                  contactEmail="tim.staley@physics.ox.ac.uk",
+                  contributor=fpsversion
                   )
     return v
 
