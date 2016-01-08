@@ -1,6 +1,8 @@
 comet>=1.1.0
+click
 voevent-parse>=0.9.0
 #amiobs>=0.3.2
+ipython
 Jinja2
 python-dateutil
 pytz

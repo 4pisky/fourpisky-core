@@ -1,21 +1,22 @@
-#!/usr/bin/env python
 import sys, os
 import datetime, pytz
 import voeventparse
 import logging
 import subprocess
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+import click
 from fourpisky.local import contacts
 from fourpisky.visibility import get_ephem
 from fourpisky.triggers import swift
 from fourpisky.triggers import is_test_trigger
 from fourpisky.voevent import ivorn_base
 from fourpisky.sites import AmiLA, Pt5m
-import fourpisky as ps
+import fourpisky as fps
 import amicomms
 
 from jinja2 import Environment, PackageLoader
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 #-------------------------------------------------------------------------------
 grb_contacts = contacts.grb_contacts
@@ -31,14 +32,15 @@ active_sites = [AmiLA, Pt5m]
 
 env = Environment(loader=PackageLoader('fourpisky', 'templates'),
                   trim_blocks=True,lstrip_blocks=True)
-env.filters['datetime'] = ps.formatting.format_datetime
-env.filters['rad_to_deg'] = ps.formatting.rad_to_deg
+env.filters['datetime'] = fps.formatting.format_datetime
+env.filters['rad_to_deg'] = fps.formatting.rad_to_deg
 
 #-------------------------------------------------------------------------------
 
+@click.command()
 def main():
-    s = sys.stdin.read()
-    v = voeventparse.loads(s)
+    stdin_binary = click.get_binary_stream('stdin')
+    v = voeventparse.loads(stdin_binary.read())
     voevent_logic(v)
     return 0
 
@@ -56,7 +58,7 @@ def swift_bat_grb_logic(v):
     alert = swift.BatGrb(v)
     alert_rejection = alert.reject()
     if alert_rejection is None:
-        ami_reject = ps.filters.ami.reject(alert.position)
+        ami_reject = fps.filters.ami.reject(alert.position)
         if ami_reject is None:
             try:
                 trigger_ami_swift_grb_alert(alert)
@@ -98,9 +100,9 @@ def trigger_ami_swift_grb_alert(alert):
                   requester=amicomms.default_requester,
                   comment=comment)
 
-    ps.comms.email.send_email(recipient_addresses=amicomms.email_address,
-                              subject=amicomms.request_email_subject,
-                              body_text=ami_request)
+    fps.comms.email.send_email(recipient_addresses=amicomms.email_address,
+                               subject=amicomms.request_email_subject,
+                               body_text=ami_request)
 
 
 
@@ -111,12 +113,12 @@ def send_initial_ami_alert_vo_notification(alert):
     request_status = {'sent_time':notification_timestamp,
                   'acknowledged':False,
                   }
-    stream_id = notification_timestamp.strftime(ps.formatting.datetime_format_short)
-    v = ps.voevent.create_ami_followup_notification(alert,
-                                             stream_id=stream_id,
-                                             request_status=request_status)
-    ps.comms.comet.send_voevent(v, contacts.local_vobroker.ipaddress,
-                                contacts.local_vobroker.port)
+    stream_id = notification_timestamp.strftime(fps.formatting.datetime_format_short)
+    v = fps.voevent.create_ami_followup_notification(alert,
+                                                     stream_id=stream_id,
+                                                     request_status=request_status)
+    fps.comms.comet.send_voevent(v, contacts.local_vobroker.ipaddress,
+                                 contacts.local_vobroker.port)
 
 
 def send_alert_report(alert, actions_taken, contacts):
@@ -127,25 +129,25 @@ def send_alert_report(alert, actions_taken, contacts):
     subject = alert.id
     if alert.inferred_name is not None:
               subject+= ' / ' + alert.inferred_name
-    ps.comms.email.send_email([p.email for p in contacts],
-                              notification_email_prefix + subject,
-                              notify_msg)
+    fps.comms.email.send_email([p.email for p in contacts],
+                               notification_email_prefix + subject,
+                               notify_msg)
 
 
 def test_logic(v):
     now = datetime.datetime.now(pytz.utc)
     stream_id = v.attrib['ivorn'].partition('#')[-1]
-    response = ps.voevent.create_4pisky_test_response_voevent(
+    response = fps.voevent.create_4pisky_test_response_voevent(
         stream_id=stream_id,
         date=now)
 
-    ps.comms.comet.send_voevent(response, contacts.local_vobroker.ipaddress,
-                                contacts.local_vobroker.port)
+    fps.comms.comet.send_voevent(response, contacts.local_vobroker.ipaddress,
+                                 contacts.local_vobroker.port)
     testresponse_template = env.get_template('test_response.j2')
     msg_context = dict(now=now)
-    msg_context.update(ps.base_context())
+    msg_context.update(fps.base_context())
     msg = testresponse_template.render(msg_context)
-    ps.comms.email.send_email(
+    fps.comms.email.send_email(
         recipient_addresses=[c.email for c in contacts.test_contacts],
         subject=notification_email_prefix + '[TEST] Test packet received',
         body_text=msg)
@@ -156,7 +158,7 @@ def archive_voevent(v, rootdir):
     relpath, filename = v.attrib['ivorn'].split('//')[1].split('#')
     filename += ".xml"
     fullpath = os.path.sep.join((rootdir, relpath, filename))
-    ps.utils.ensure_dir(fullpath)
+    fps.utils.ensure_dir(fullpath)
     with open(fullpath, 'w') as f:
         voeventparse.dump(v, f)
 
@@ -171,10 +173,7 @@ def generate_report_text(alert, sites, actions_taken,
                 report_timestamp=report_timestamp,
                 site_reports=site_reports,
                 actions_taken=actions_taken,)
-    msg_context.update(ps.base_context())
+    msg_context.update(fps.base_context())
     msg = notification_template.render(msg_context)
     return msg
-
-if __name__ == '__main__':
-    sys.exit(main())
 
