@@ -8,6 +8,7 @@ import voeventdb.server.database.config as dbconfig
 import logging
 import logging.handlers
 import time
+import subprocess
 
 
 
@@ -33,18 +34,22 @@ def main(hashdb_path, logfile, voevent_pause_secs):
         if ((feed.new_hash != feed.old_hash)
             or feed.old_hash is None):
             new_ids = feed.determine_new_ids_from_localdb()
-            for id in sorted(new_ids,
+            for feed_id in sorted(new_ids,
                              key=lambda id:feed.feed_id_to_stream_id(id)):
                 try:
-                    v = feed.generate_voevent(id)
+                    v = feed.generate_voevent(feed_id)
                     comet.send_voevent(v)
                     logger.info(
                         "Sent new Voevent: {}".format(v.attrib['ivorn']))
                     #Momentary pause to avoid overloading the puny cloud-vm
                     time.sleep(voevent_pause_secs)
+                except KeyboardInterrupt:
+                    raise
+                except subprocess.CalledProcessError:
+                    logger.warning("VOEvent insertion failed for {}".format(feed_id))
                 except:
                     logger.exception(
-                        "Error processing id {} in feed".format(id, feed.url))
+                        "Error processing id {} in feed".format(feed_id, feed.url))
             feed.save_new_hash()
             if not new_ids:
                 logger.debug("Feed {} changed but found no new VOEvents".format(
