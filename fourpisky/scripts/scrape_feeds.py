@@ -1,6 +1,10 @@
 import click
+import os
 from fourpisky.feeds import (AsassnFeed, )
 from fourpisky.comms import comet
+import sqlalchemy
+from voeventdb.server.database import session_registry
+import voeventdb.server.database.config as dbconfig
 import logging
 
 
@@ -38,6 +42,10 @@ def main(hashdb_path, logfile):
                     logger.exception(
                         "Error processing id {} in feed".format(id, feed.url))
             feed.save_new_hash()
+            if not new_ids:
+                logger.debug("Feed {} changed but found no new VOEvents".format(
+                    feed.name
+                ))
         else:
             logger.debug(
                     "Hash in {} matches for feed: '{}'; moving on.".format(
@@ -46,12 +54,20 @@ def main(hashdb_path, logfile):
             ))
 
 
+default_dbname = os.environ.get('VOEVENTDB_DBNAME',
+                                dbconfig.testdb_corpus_url.database)
+
 @click.command()
+@click.option('--dbname',
+                default = default_dbname,
+                help="Database to check for duplicates, default='{}'".format(
+                  default_dbname
+              ))
 @click.option('--hashdb_path', type=click.Path(),
               default='/tmp/fps_feeds_hashdb')
 @click.option('--logfile', type=click.Path(),
               default='scrape_feeds.log')
-def cli(hashdb_path, logfile):
+def cli(dbname, hashdb_path, logfile):
     """
      Trivial wrapper about main to create a command line interface entry-point.
 
@@ -59,6 +75,10 @@ def cli(hashdb_path, logfile):
      e.g. testing, and also provide a sensible location to initialise logging.)
     """
     logging.basicConfig()
+    dburl = dbconfig.make_db_url(dbconfig.default_admin_db_params, dbname)
+    session_registry.configure(
+        bind=sqlalchemy.engine.create_engine(dburl, echo=False)
+    )
     main(hashdb_path, logfile)
 
 def setup_logging(logfile_path):
