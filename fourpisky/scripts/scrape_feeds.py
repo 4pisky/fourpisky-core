@@ -42,6 +42,8 @@ def main(hashdb_path, logfile, voevent_pause_secs):
                         "Sent new Voevent: {}".format(v.attrib['ivorn']))
                     #Momentary pause to avoid overloading the puny cloud-vm
                     time.sleep(voevent_pause_secs)
+                except KeyboardInterrupt:
+                    raise
                 except:
                     logger.exception(
                         "Error processing id {} in feed".format(id, feed.url))
