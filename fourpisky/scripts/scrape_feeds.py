@@ -19,7 +19,8 @@ def main(hashdb_path, logfile):
     Returns:
 
     """
-    logger = logging.getLogger(__name__)
+    setup_logging(logfile)
+    logger = logging.getLogger()
     feed_list = [AssasnFeed(hashdb_path)]
 
     for feed in feed_list:
@@ -31,12 +32,18 @@ def main(hashdb_path, logfile):
                 try:
                     v = feed.generate_voevent(id)
                     comet.send_voevent(v)
-                    logger.debug(
+                    logger.info(
                         "Sent new Voevent: {}".format(v.attrib['ivorn']))
                 except:
                     logger.exception(
                         "Error processing id {} in feed".format(id, feed.url))
             feed.save_new_hash()
+        else:
+            logger.debug(
+                    "Hash in {} matches for feed: '{}'; moving on.".format(
+                        hashdb_path,
+                        feed.name,
+            ))
 
 
 @click.command()
@@ -53,3 +60,48 @@ def cli(hashdb_path, logfile):
     """
     logging.basicConfig()
     main(hashdb_path, logfile)
+
+def setup_logging(logfile_path):
+    """
+    Set up INFO- and DEBUG-level logfiles
+    """
+    date_fmt = "%y-%m-%d (%a) %H:%M:%S"
+
+    std_formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s',
+                                      date_fmt)
+
+
+    named_formatter = logging.Formatter(
+                            '%(asctime)s:%(name)s:%(levelname)s:%(message)s',
+                            # '%(asctime)s:%(levelname)s:%(message)s',
+                            date_fmt)
+
+    #Get to the following size before splitting log into multiple files:
+    log_chunk_bytesize = 5e6
+
+    info_logfile_path = logfile_path
+    debug_logfile_path = logfile_path+".debug"
+
+    info_logger = logging.handlers.RotatingFileHandler(info_logfile_path,
+                            maxBytes=log_chunk_bytesize, backupCount=10)
+    info_logger.setFormatter(named_formatter)
+    info_logger.setLevel(logging.INFO)
+
+    debug_logger = logging.handlers.RotatingFileHandler(debug_logfile_path,
+                            maxBytes=log_chunk_bytesize, backupCount=10)
+    debug_logger.setFormatter(named_formatter)
+    debug_logger.setLevel(logging.DEBUG)
+
+    stdout_logger = logging.StreamHandler()
+    stdout_logger.setFormatter(named_formatter)
+    # stdout_logger.setLevel(logging.INFO)
+    stdout_logger.setLevel(logging.DEBUG)
+
+    #Set up root logger
+    logger = logging.getLogger()
+    logger.handlers=[]
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(info_logger)
+    logger.addHandler(debug_logger)
+    logger.addHandler(stdout_logger)
+    # logging.getLogger('iso8601').setLevel(logging.INFO) #Suppress iso8601 logging

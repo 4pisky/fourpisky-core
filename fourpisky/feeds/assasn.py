@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class AssasnFeed(object):
+    name = "ASASSN webpage"
     url = "http://www.astronomy.ohio-state.edu/~assassin/transients.html"
     substream = "ASASSN"
     stream = ivorn_base + '/' + substream
@@ -59,9 +60,15 @@ class AssasnFeed(object):
     def new_hash(self):
         if not self._new_hash:
             if self.hash_byte_range:
+                logger.debug(
+                        "Fetching bytes {start}-{end} from {url} for hash-check".format(
+                                start=self.hash_byte_range[0],
+                                end=self.hash_byte_range[1],
+                                url=self.url,
+                        ))
                 req = urllib2.Request(self.url)
                 req.headers['Range'] = 'bytes={}-{}'.format(
-                    *self.hash_byte_range)
+                        *self.hash_byte_range)
                 data = urllib2.urlopen(req).read()
             else:
                 data = self.content
@@ -92,7 +99,6 @@ class AssasnFeed(object):
         logger.debug("Inserted hash for feed {} in cache {}; md5={}".format(
                 self.url, self.hash_cache_path, self.new_hash
         ))
-
 
     def feed_id_to_stream_id(self, feed_id):
         # Currently just a wrapper, bound to class for convenience.
@@ -180,7 +186,6 @@ class AssasnFeed(object):
 
         return v
 
-
     def determine_new_ids_from_localdb(self):
         s = session_registry()
         new_ids = []
@@ -190,10 +195,10 @@ class AssasnFeed(object):
                 ivo_prefix = self.get_ivorn_prefix(ivo)
                 if dbconvenience.ivorn_prefix_present(s, ivo_prefix):
                     logger.warning(
-                        "Possible duplicate - timestamp prefixes match but "
-                        "full ivorn has changed (will not insert): {}".format(
-                            ivo
-                        ))
+                            "Possible duplicate - timestamp prefixes match but "
+                            "full ivorn has changed (will not insert): {}".format(
+                                    ivo
+                            ))
                 else:
                     new_ids.append(feed_id)
         return new_ids
@@ -207,7 +212,7 @@ class AssasnFeed(object):
         """
         stream_prefix = ''.join(('ivo://', self.stream, '#'))
         stream_id = ivorn[len(stream_prefix):]
-        return stream_prefix + stream_id.split('_',1)[0]
+        return stream_prefix + stream_id.split('_', 1)[0]
 
 
 # ==========================================================================
