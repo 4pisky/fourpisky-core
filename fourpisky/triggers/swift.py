@@ -47,8 +47,9 @@ class filters:
 class BatGrb(object):
     def __init__(self, voevent):
         self.voevent = voevent
+        self.ivorn = self.voevent.attrib['ivorn']
         if not filters.is_bat_grb_pkt(voevent):
-            raise ValueError("Cannot instantiate BatGrb; packet header mismatch.")
+            raise ValueError("Cannot instantiate AsassnAlert; packet header mismatch.")
 
         self.description = "Swift BAT GRB - initial position"
         id_long_short = BatGrb._pull_swift_bat_id(self.voevent)

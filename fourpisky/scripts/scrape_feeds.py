@@ -1,5 +1,5 @@
 import click
-from fourpisky.feeds import (AssasnFeed, )
+from fourpisky.feeds import (AsassnFeed, )
 from fourpisky.comms import comet
 import logging
 
@@ -21,7 +21,7 @@ def main(hashdb_path, logfile):
     """
     setup_logging(logfile)
     logger = logging.getLogger()
-    feed_list = [AssasnFeed(hashdb_path)]
+    feed_list = [AsassnFeed(hashdb_path)]
 
     for feed in feed_list:
         if ((feed.new_hash != feed.old_hash)

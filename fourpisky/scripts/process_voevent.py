@@ -1,24 +1,24 @@
-import sys, os
+import os
 import datetime, pytz
 import voeventparse
 import logging
 import subprocess
 import click
+from fourpisky.formatting import fps_template_env
 from fourpisky.local import contacts
 from fourpisky.visibility import get_ephem
-from fourpisky.triggers import swift
+from fourpisky.triggers import swift, asassn
 from fourpisky.triggers import is_test_trigger
 from fourpisky.voevent import ivorn_base
 from fourpisky.sites import AmiLA, Pt5m
 import fourpisky as fps
 import amicomms
 
-from jinja2 import Environment, PackageLoader
-
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 #-------------------------------------------------------------------------------
+# Definitions
 grb_contacts = contacts.grb_contacts
 
 amicomms.email_address = contacts.test_contacts[0].email
@@ -29,12 +29,6 @@ default_archive_root = os.path.join(os.environ["HOME"],
                                     "voevent-deploy","voe_archive")
 
 active_sites = [AmiLA, Pt5m]
-
-env = Environment(loader=PackageLoader('fourpisky', 'templates'),
-                  trim_blocks=True,lstrip_blocks=True)
-env.filters['datetime'] = fps.formatting.format_datetime
-env.filters['rad_to_deg'] = fps.formatting.rad_to_deg
-
 #-------------------------------------------------------------------------------
 
 @click.command()
@@ -48,6 +42,8 @@ def voevent_logic(v):
     #SWIFT BAT GRB alert:
     if swift.filters.is_bat_grb_pkt(v):
         swift_bat_grb_logic(v)
+    if asassn.filters.is_fps_asassn_packet(v):
+        asassn_alert_logic(v)
     if is_test_trigger(v):
         test_logic(v)
     archive_voevent(v, rootdir=default_archive_root)
@@ -83,6 +79,15 @@ def swift_bat_grb_logic(v):
     send_alert_report(alert, actions_taken, grb_contacts)
 
 
+def asassn_alert_logic(v):
+    actions_taken=[]
+    alert = asassn.AsassnAlert(v)
+    if asassn.filters.is_recent(alert):
+        send_alert_report(alert, actions_taken, grb_contacts)
+
+
+#=============================================================================
+# Subroutines
 
 
 def trigger_ami_swift_grb_alert(alert):
@@ -143,7 +148,7 @@ def test_logic(v):
 
     fps.comms.comet.send_voevent(response, contacts.local_vobroker.ipaddress,
                                  contacts.local_vobroker.port)
-    testresponse_template = env.get_template('test_response.j2')
+    testresponse_template = fps_template_env.get_template('test_response.j2')
     msg_context = dict(now=now)
     msg_context.update(fps.base_context())
     msg = testresponse_template.render(msg_context)
@@ -168,7 +173,7 @@ def generate_report_text(alert, sites, actions_taken,
         report_timestamp = datetime.datetime.now(pytz.utc)
     site_reports = [(site, get_ephem(alert.position, site, report_timestamp))
                             for site in sites]
-    notification_template = env.get_template('notify.j2')
+    notification_template = fps_template_env.get_template('notify.j2')
     msg_context=dict(alert=alert,
                 report_timestamp=report_timestamp,
                 site_reports=site_reports,

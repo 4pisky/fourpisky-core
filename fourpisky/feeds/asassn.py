@@ -13,20 +13,29 @@ from astropy.coordinates import SkyCoord
 import astropy.units as u
 from voeventdb.server.database import session_registry
 import voeventdb.server.database.convenience as dbconvenience
-from fourpisky.voevent import ivorn_base, create_skeleton_4pisky_voevent
+from fourpisky.voevent import (
+    ivorn_base,
+    create_skeleton_4pisky_voevent,
+    asassn_alert_substream,
+    get_stream_ivorn_prefix,
+)
 from fourpisky.utils import sanitise_string_for_stream_id
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class AssasnFeed(object):
+class AsassnFeed(object):
     name = "ASASSN webpage"
     url = "http://www.astronomy.ohio-state.edu/~assassin/transients.html"
-    substream = "ASASSN"
-    stream = ivorn_base + '/' + substream
+    substream = asassn_alert_substream
+    stream_ivorn_prefix = get_stream_ivorn_prefix(substream)
     hash_byte_range = (0, 10000)
     hash_cache_path = None
+
+    #VOEvent details:
+    text_params_groupname = 'asassn_params'
+    url_params_groupname = 'asassn_urls'
 
     def __init__(self, hash_cache_path=None):
         self.hash_cache_path = hash_cache_path
@@ -107,7 +116,7 @@ class AssasnFeed(object):
 
     def feed_id_to_ivorn(self, feed_id):
         safe_id = self.feed_id_to_stream_id(feed_id)
-        return ''.join(('ivo://', self.stream, '#', safe_id))
+        return self.stream_ivorn_prefix + safe_id
 
     def generate_voevent(self, feed_id):
         rowdict = self.id_row_map[feed_id]
@@ -157,7 +166,7 @@ class AssasnFeed(object):
                 obs_time=timestamp_dt,
                 observatory_location=vp.definitions.observatory_location.geosurface)
         asassn_params = [vp.Param(key, params[key]) for key in
-                         (AsassnKeys.id_assasn,
+                         (AsassnKeys.id_asassn,
                           AsassnKeys.id_other,
                           AsassnKeys.detection_timestamp,
                           AsassnKeys.ra,
@@ -181,8 +190,10 @@ class AssasnFeed(object):
             )
         asassn_urls = [vp.Param(key, urls[key][0][1]) for key in urls]
 
-        v.What.append(vp.Group(params=asassn_params, name='asassn_params'))
-        v.What.append(vp.Group(params=asassn_urls, name='asassn_urls'))
+        v.What.append(vp.Group(params=asassn_params,
+                               name=self.text_params_groupname))
+        v.What.append(vp.Group(params=asassn_urls,
+                               name=self.url_params_groupname))
 
         return v
 
@@ -192,8 +203,8 @@ class AssasnFeed(object):
         for feed_id in self.id_row_map:
             ivo = self.feed_id_to_ivorn(feed_id)
             if not dbconvenience.ivorn_present(s, ivo):
-                ivo_prefix = self.get_ivorn_prefix(ivo)
-                if dbconvenience.ivorn_prefix_present(s, ivo_prefix):
+                dupes_prefix = self.get_ivorn_prefix_for_matched_timestamp(ivo)
+                if dbconvenience.ivorn_prefix_present(s, dupes_prefix):
                     logger.warning(
                             "Possible duplicate - timestamp prefixes match but "
                             "full ivorn has changed (will not insert): {}".format(
@@ -203,16 +214,16 @@ class AssasnFeed(object):
                     new_ids.append(feed_id)
         return new_ids
 
-    def get_ivorn_prefix(self, ivorn):
+    def get_ivorn_prefix_for_matched_timestamp(self, ivorn):
         """
-        Determine the ivorn prefix for a given timestamp.
+        Determines what a possible duplicate ivorn might be prefixed by.
 
         Used for duplicate checking - assumes timestamp unchanging even if the
-        event gets renamed.
+        event gets renamed. We extract the timestamp portion from the given
+        IVORN, then re-append it to the stream-ivorn prefix.
         """
-        stream_prefix = ''.join(('ivo://', self.stream, '#'))
-        stream_id = ivorn[len(stream_prefix):]
-        return stream_prefix + stream_id.split('_', 1)[0]
+        stream_id = ivorn[len(self.stream_ivorn_prefix):]
+        return self.stream_ivorn_prefix + stream_id.split('_', 1)[0]
 
 
 # ==========================================================================
@@ -239,7 +250,7 @@ def extract_asassn_id(rowdict):
         return timestamp_id_map[timestamp]
 
     # Now try to parse any vaguely reasonable data
-    asassn_id = params.get(AsassnKeys.id_assasn)
+    asassn_id = params.get(AsassnKeys.id_asassn)
     if asassn_id is not None:
         if asassn_id.startswith('ASASSN') or asassn_id.startswith('ASASN'):
             external_id = asassn_id
@@ -259,7 +270,7 @@ def extract_asassn_id(rowdict):
             first_url_text_href_pair = alt_id_url[0]
             external_id = first_url_text_href_pair[0]
         else:
-            cell = rowdict['raw'][assasn_headers.index('ATEL')]
+            cell = rowdict['raw'][asassn_headers.index('ATEL')]
             # print cell.text
             # print [c.text for c in cell.getchildren()]
             # print '-------------------'
@@ -281,7 +292,7 @@ def rowdict_to_feed_id(rowdict):
 
 # =======================================================================
 
-assasn_headers = (
+asassn_headers = (
     'ASAS-SN',
     'Other',
     'ATEL',
@@ -296,11 +307,11 @@ assasn_headers = (
     'Comments'
 )
 
-assasn_ncols = len(assasn_headers)
+asassn_ncols = len(asassn_headers)
 
 
 class AsassnKeys():
-    id_assasn = 'id_assasn'
+    id_asassn = 'id_assasn'
     id_other = 'id_other'
     atel_url = 'atel_url'
     ra = 'ra'
@@ -314,8 +325,8 @@ class AsassnKeys():
     comment = 'comment'
 
 
-assasn_key_hdr_map = {
-    'ASAS-SN': AsassnKeys.id_assasn,
+asassn_key_hdr_map = {
+    'ASAS-SN': AsassnKeys.id_asassn,
     'Other': AsassnKeys.id_other,
     'ATEL': AsassnKeys.atel_url,
     'RA': AsassnKeys.ra,
@@ -329,7 +340,7 @@ assasn_key_hdr_map = {
     'Comments': AsassnKeys.comment,
 }
 
-assasn_url_only_keys = (
+asassn_url_only_keys = (
     AsassnKeys.atel_url,
     AsassnKeys.sdss_url,
     AsassnKeys.dss_url,
@@ -349,19 +360,19 @@ def extract_etree_cells(tree):
     cells = children[2:]
     headers = tuple([c.text for c in children[0].getchildren()])
     # We expect a multiple of assasn_ncols:
-    assert (len(cells) % assasn_ncols) == 0
+    assert (len(cells) % asassn_ncols) == 0
     # Check headers unchanged
-    assert headers == assasn_headers
+    assert headers == asassn_headers
     return cells
 
 
-def assasn_htmlrow_to_dict(cellrow):
+def asassn_htmlrow_to_dict(cellrow):
     param_dict = {}
     url_dict = defaultdict(list)
-    for idx, col_hdr in enumerate(assasn_headers):
-        param_key = assasn_key_hdr_map[col_hdr]
+    for idx, col_hdr in enumerate(asassn_headers):
+        param_key = asassn_key_hdr_map[col_hdr]
         elt = cellrow[idx]
-        if elt.text and not col_hdr in assasn_url_only_keys:
+        if elt.text and not col_hdr in asassn_url_only_keys:
             text = elt.text.strip()
             param_dict[param_key] = text
         children = elt.getchildren()
@@ -387,10 +398,10 @@ def parse_pagetree(tree):
     cells = extract_etree_cells(tree)
     cellrows = []
     # Stride through cells at rowlength inferred by ncols
-    for row_idx, _ in enumerate(cells[::assasn_ncols]):
+    for row_idx, _ in enumerate(cells[::asassn_ncols]):
         # Select all cells in current stride, create list representing row
         row = [c for c in cells[
-                          assasn_ncols * row_idx:assasn_ncols * row_idx + assasn_ncols]]
+                          asassn_ncols * row_idx:asassn_ncols * row_idx + asassn_ncols]]
         cellrows.append(row)
-    events = [assasn_htmlrow_to_dict(cr) for cr in cellrows]
+    events = [asassn_htmlrow_to_dict(cr) for cr in cellrows]
     return events

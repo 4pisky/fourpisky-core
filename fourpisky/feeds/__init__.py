@@ -1,1 +1,1 @@
-from fourpisky.feeds.assasn import AssasnFeed
+from fourpisky.feeds.asassn import AsassnFeed

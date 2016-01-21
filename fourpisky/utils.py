@@ -32,7 +32,12 @@ def ensure_dir(filename):
 
 def convert_voe_coords_to_eqposn(c):
     """Unit-checked conversion from voeventparse.Position2D -> astropysics FK5"""
-    if (c.system != voeventparse.definitions.sky_coord_system.utc_fk5_geo
+    acceptable_coord_sys = (
+        voeventparse.definitions.sky_coord_system.utc_fk5_geo,
+        voeventparse.definitions.sky_coord_system.utc_icrs_geo
+    )
+
+    if (c.system not in acceptable_coord_sys
         or c.units != 'deg'):
         raise ValueError(
                 "Unrecognised Coords type: %s, %s" % (c.system, c.units))

@@ -1,12 +1,14 @@
 At {{ report_timestamp|datetime(dt_style) }} an alert of type:
 '{{ alert.description }}' 
-was received. Details are as follows:
+was received. Synopis:
 ID: {{ alert.id }}
+{% if alert.inferred_name %}
 Inferred name: {{ alert.inferred_name }}
+{% endif %}
 Co-ords:
     HMS-DMS: {{ alert.position.ra|string}}  {{alert.position.dec|string }}
     Degrees: {{ alert.position.ra|rad_to_deg }}, {{ alert.position.dec|rad_to_deg}}
-Trigger time: {{ alert.isotime|datetime(dt_style) }}
+Event timestamp: {{ alert.isotime|datetime(dt_style) }}
 
 ==============
 Actions taken:
@@ -16,6 +18,29 @@ Actions taken:
 {% else %}
 No follow-ups requested.
 {% endfor %}
+
+==============
+Alert details:
+==============
+{% if alert.text_params is defined %}
+Alert parameters
+-----------------
+    {% for key, value in alert.text_params.iteritems() %}
+{{ key }}: {{ value }}
+    {% endfor %}
+{% endif %}
+
+{% if alert.url_params is defined %}
+Relevant URLs
+-----------------
+    {% for key, value in alert.url_params.iteritems() %}
+{{ key }}: {{ value }}
+    {% endfor %}
+
+{% endif %}
+VOEventDB link:
+http://voeventdb.4pisky.org/apiv1/packet/xml/{{ alert.ivorn|urlquote }}
+
 
 {% if site_reports %}
 =============
