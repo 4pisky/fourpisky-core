@@ -7,10 +7,11 @@ from voeventdb.server.database import session_registry
 import voeventdb.server.database.config as dbconfig
 import logging
 import logging.handlers
+import time
 
 
 
-def main(hashdb_path, logfile):
+def main(hashdb_path, logfile, voevent_pause_secs):
     """
     Checks feeds against their 'last-seen' hash, processes if changed.
 
@@ -39,6 +40,8 @@ def main(hashdb_path, logfile):
                     comet.send_voevent(v)
                     logger.info(
                         "Sent new Voevent: {}".format(v.attrib['ivorn']))
+                    #Momentary pause to avoid overloading the puny cloud-vm
+                    time.sleep(voevent_pause_secs)
                 except:
                     logger.exception(
                         "Error processing id {} in feed".format(id, feed.url))
@@ -57,6 +60,8 @@ def main(hashdb_path, logfile):
 
 default_dbname = os.environ.get('VOEVENTDB_DBNAME',
                                 dbconfig.testdb_corpus_url.database)
+default_sleeptime=os.environ.get('FPS_FEED_SLEEPTIME',
+                                10.0)
 
 @click.command()
 @click.option('--dbname',
@@ -68,7 +73,12 @@ default_dbname = os.environ.get('VOEVENTDB_DBNAME',
               default='/tmp/fps_feeds_hashdb')
 @click.option('--logfile', type=click.Path(),
               default='scrape_feeds.log')
-def cli(dbname, hashdb_path, logfile):
+@click.option('--sleeptime', type=click.FLOAT,
+              default=default_sleeptime,
+              help="Delay between VOEvent insertions, default='{}'".format(
+                  default_sleeptime
+              ))
+def cli(dbname, hashdb_path, logfile, sleeptime):
     """
      Trivial wrapper about main to create a command line interface entry-point.
 
@@ -79,7 +89,7 @@ def cli(dbname, hashdb_path, logfile):
     session_registry.configure(
         bind=sqlalchemy.engine.create_engine(dburl, echo=False)
     )
-    main(hashdb_path, logfile)
+    main(hashdb_path, logfile, sleeptime)
 
 def setup_logging(logfile_path):
     """

@@ -29,6 +29,7 @@ if os.path.exists(hashdb_path):
 
 scrape_script.main(
     hashdb_path=hashdb_path,
-     logfile='feed_scrape_test.log'
+     logfile='feed_scrape_test.log',
+     voevent_pause_secs=0.0,
      )
 
