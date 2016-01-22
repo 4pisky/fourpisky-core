@@ -132,18 +132,8 @@ class AsassnFeed(object):
         vp.add_how(v, references=vp.Reference(uri=self.url))
         v.How.Description = "Parsed from ASASSN listings page by 4PiSky-Bot."
 
-        timestamp_str = params[AsassnKeys.detection_timestamp]
-
-        if '.' in timestamp_str:
-            date_str, day_fraction_str = timestamp_str.split('.')
-            day_fraction_str = '0.' + day_fraction_str
-        else:
-            date_str = timestamp_str
-            day_fraction_str = 0.
-        timestamp_dt = iso8601.parse_date(date_str)
-
-        timestamp_dt = timestamp_dt + datetime.timedelta(
-                days=float(day_fraction_str))
+        timestamp_dt = asassn_timestamp_str_to_datetime(
+                params[AsassnKeys.detection_timestamp])
 
         posn_sc = SkyCoord(params['ra'], params['dec'],
                            unit=(u.hourangle, u.deg))
@@ -279,14 +269,35 @@ def extract_asassn_id(rowdict):
                              'no id found')
     return external_id
 
+def asassn_timestamp_str_to_datetime(timestamp_str):
+        if '.' in timestamp_str:
+            date_str, day_fraction_str = timestamp_str.split('.')
+            day_fraction_str = '0.' + day_fraction_str
+        else:
+            date_str = timestamp_str
+            day_fraction_str = 0.
+
+        timestamp_dt = (iso8601.parse_date(date_str) +
+                        datetime.timedelta(days=float(day_fraction_str)))
+        return timestamp_dt
 
 def rowdict_to_feed_id(rowdict):
     """
     NB timestamp goes first in the feed id, we rely on this for deduplication.
     """
     external_id = extract_asassn_id(rowdict)
-    timestamp = rowdict['param'][AsassnKeys.detection_timestamp]
-    feed_id = timestamp + '_' + external_id
+    #We reformat the date-string to zero-pad the day digit as needed.
+    timestamp_dt = asassn_timestamp_str_to_datetime(
+            rowdict['param'][AsassnKeys.detection_timestamp]).replace(tzinfo=None)
+    uniform_date_str = timestamp_dt.strftime('%Y-%m-%d')
+    start_of_day = datetime.datetime(timestamp_dt.year,
+                                     timestamp_dt.month,
+                                     timestamp_dt.day
+                                     )
+    #Friday afternoon kludge:
+    day_fraction_str = str((timestamp_dt - start_of_day).total_seconds()/3600./24.)[1:]
+    feed_id = ''.join((uniform_date_str,day_fraction_str,
+                      '_',external_id))
     return feed_id
 
 
