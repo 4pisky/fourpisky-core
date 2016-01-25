@@ -190,6 +190,9 @@ class AsassnFeed(object):
     def determine_new_ids_from_localdb(self):
         s = session_registry()
         new_ids = []
+        logger.debug("Checking database {} for duplicates from feed {}".format(
+            s.bind.url.database, self.name
+        ))
         for feed_id in self.id_row_map:
             ivo = self.feed_id_to_ivorn(feed_id)
             if not dbconvenience.ivorn_present(s, ivo):

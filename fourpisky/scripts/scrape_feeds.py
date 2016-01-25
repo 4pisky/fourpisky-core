@@ -4,6 +4,7 @@ from fourpisky.feeds import (AsassnFeed, )
 from fourpisky.comms import comet
 import sqlalchemy
 from voeventdb.server.database import session_registry
+from voeventdb.server.database.models import Voevent
 import voeventdb.server.database.config as dbconfig
 import logging
 import logging.handlers
@@ -12,7 +13,8 @@ import subprocess
 
 
 
-def main(hashdb_path, logfile, voevent_pause_secs):
+def main(hashdb_path, logfile, voevent_pause_secs,
+         process_function=comet.send_voevent):
     """
     Checks feeds against their 'last-seen' hash, processes if changed.
 
@@ -38,9 +40,9 @@ def main(hashdb_path, logfile, voevent_pause_secs):
                              key=lambda id:feed.feed_id_to_stream_id(id)):
                 try:
                     v = feed.generate_voevent(feed_id)
-                    comet.send_voevent(v)
+                    process_function(v)
                     logger.info(
-                        "Sent new Voevent: {}".format(v.attrib['ivorn']))
+                        "Processed new Voevent: {}".format(v.attrib['ivorn']))
                     #Momentary pause to avoid overloading the puny cloud-vm
                     time.sleep(voevent_pause_secs)
                 except KeyboardInterrupt:
@@ -68,22 +70,30 @@ default_dbname = os.environ.get('VOEVENTDB_DBNAME',
 default_sleeptime=os.environ.get('FPS_FEED_SLEEPTIME',
                                 10.0)
 
+def direct_store_voevent(voevent):
+    s = session_registry()
+    s.add(Voevent.from_etree(voevent))
+    s.commit()
+
 @click.command()
 @click.option('--dbname',
                 default = default_dbname,
                 help="Database to check for duplicates, default='{}'".format(
                   default_dbname
               ))
+@click.option('--direct-store', is_flag=True,
+              help='Store the VOEvents directly in the local database'
+              '(Default is to send/insert via the local broker.)')
 @click.option('--hashdb_path', type=click.Path(),
               default='/tmp/fps_feeds_hashdb')
 @click.option('--logfile', type=click.Path(),
               default='scrape_feeds.log')
 @click.option('--sleeptime', type=click.FLOAT,
               default=default_sleeptime,
-              help="Delay between VOEvent insertions, default='{}'".format(
+              help="Delay between VOEvent Comet-sends, default='{}'".format(
                   default_sleeptime
               ))
-def cli(dbname, hashdb_path, logfile, sleeptime):
+def cli(dbname, direct_store, hashdb_path, logfile, sleeptime):
     """
      Trivial wrapper about main to create a command line interface entry-point.
 
@@ -94,7 +104,11 @@ def cli(dbname, hashdb_path, logfile, sleeptime):
     session_registry.configure(
         bind=sqlalchemy.engine.create_engine(dburl, echo=False)
     )
-    main(hashdb_path, logfile, sleeptime)
+    if direct_store:
+        main(hashdb_path, logfile, voevent_pause_secs=0.0,
+             process_function=direct_store_voevent)
+    else:
+        main(hashdb_path, logfile, sleeptime)
 
 def setup_logging(logfile_path):
     """
