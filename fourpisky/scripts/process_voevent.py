@@ -115,8 +115,9 @@ def trigger_ami_swift_grb_alert(alert):
 
 def send_initial_ami_alert_vo_notification(alert):
     notification_timestamp = datetime.datetime.utcnow()
-    request_status = {'sent_time':notification_timestamp,
-                  'acknowledged':False,
+    request_status = {
+        'sent_time':notification_timestamp,
+        'acknowledged':False,
                   }
     stream_id = notification_timestamp.strftime(fps.formatting.datetime_format_short)
     v = fps.voevent.create_ami_followup_notification(alert,

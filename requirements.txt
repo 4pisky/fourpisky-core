@@ -1,7 +1,7 @@
 astropy
 comet>=1.1.0
 click
-voevent-parse>=0.9.0
+voevent-parse>=0.9.3
 requests
 voeventdb.server
 #amiobs>=0.3.2

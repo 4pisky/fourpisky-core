@@ -12,11 +12,12 @@ ivorn_base = 'voevent.4pisky.org'
 test_trigger_substream = 'TEST-TRIGGER'
 test_response_substream = 'TEST-RESPONSE'
 alarrm_request_substream = 'ALARRM-REQUEST'
+alarrm_obs_test_substream = 'ALARRM-OBSTEST'
 asassn_alert_substream = 'ASASSN'
 
 
 def get_stream_ivorn_prefix(substream):
-    return ''.join((ivo_prefix,ivorn_base,'/',substream,'#'))
+    return ''.join((ivo_prefix, ivorn_base, '/', substream, '#'))
 
 
 datetime_format_short = '%y%m%d-%H%M.%S'
@@ -113,3 +114,33 @@ def create_ami_followup_notification(alert, stream_id,
     voevent.WhereWhen.Description = "Target co-ords from original Swift BAT alert"
 
     return voevent
+
+
+def create_alarrm_obs_test_event():
+    now = datetime.datetime.utcnow()
+    test_packet = create_skeleton_4pisky_voevent(
+            substream=alarrm_obs_test_substream,
+            stream_id=now.strftime(datetime_format_short),
+            role=vp.definitions.roles.test,
+            date=now,
+    )
+
+    fake_position = vp.Position2D(
+            ra=45, dec=45, err=0.1,
+            units=vp.definitions.units.degrees,
+            system=vp.definitions.sky_coord_system.utc_icrs_geo)
+    vp.add_where_when(
+            test_packet,
+            fake_position,
+            obs_time=now,
+            observatory_location=vp.definitions.observatory_location.geosurface)
+
+    test_packet.What.append(
+            vp.Param(name='flux_density', value=0.1,
+                     unit=vp.definitions.units.jansky,
+                     ucd='phot.flux.density;Em.radio.12-30GHz'))
+    test_packet.What.append(
+            vp.Param(name='central_frequency', value=15e9,
+                     unit=vp.definitions.units.hertz,
+                     ucd='Instr.bandpass'))
+    return test_packet
