@@ -1,5 +1,5 @@
 astropy
-comet>=1.1.0
+comet>=2
 click
 voevent-parse>=0.9.3
 requests
