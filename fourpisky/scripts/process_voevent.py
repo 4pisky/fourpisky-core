@@ -46,7 +46,7 @@ def voevent_logic(v):
         asassn_alert_logic(v)
     if is_test_trigger(v):
         test_logic(v)
-    archive_voevent(v, rootdir=default_archive_root)
+#    archive_voevent(v, rootdir=default_archive_root)
 
 
 def swift_bat_grb_logic(v):
