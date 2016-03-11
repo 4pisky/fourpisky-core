@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import voeventparse as vp
 import datetime
+import uuid
 from copy import copy
 from fourpisky._version import get_versions
 
@@ -21,6 +22,27 @@ def get_stream_ivorn_prefix(substream):
 
 
 datetime_format_short = '%y%m%d-%H%M.%S'
+
+def generate_stream_id(dtime):
+    """
+    Get a string for use as a stream ID.
+
+    The idea is to create a stream ID that is largely human-readable
+    (hence the timestamp), and compact, but will not repeat if multiple packets
+    are generated within a small timespan (within reason).
+    To do this, we assume that only a single machine
+    is generating alerts in a given stream. This means we can generate
+    a uuid1() hexstring and throw away the static bytes which are derived from the
+    machine's MAC address. This way we reduce the UUID hex length from
+    32 chars to 12.
+
+    """
+    datetime_format_short = '%y%m%d-%H%M.%S'
+    timestamp = dtime.strftime(datetime_format_short)
+    uuid_hex = uuid.uuid1().hex
+    uuid_substr = uuid_hex[:8] + uuid_hex[16:20]
+    stream_id = timestamp+'_'+uuid_substr
+    return stream_id
 
 
 def create_skeleton_4pisky_voevent(substream, stream_id,
@@ -63,9 +85,10 @@ def create_skeleton_4pisky_voevent(substream, stream_id,
 
 def create_4pisky_test_trigger_voevent():
     now = datetime.datetime.utcnow()
+    stream_id = generate_stream_id(now)
     test_packet = create_skeleton_4pisky_voevent(
             substream=test_trigger_substream,
-            stream_id=now.strftime(datetime_format_short),
+            stream_id=stream_id,
             role=vp.definitions.roles.test,
             date=now,
     )

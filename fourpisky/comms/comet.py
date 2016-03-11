@@ -15,11 +15,12 @@ def send_voevent(voevent, host='localhost', port=8098):
         cmd = ['comet-sendvo']
         cmd.append('--host=' + host)
         cmd.append('--port=' + str(port))
-        subprocess.check_call(cmd, stdin=tf)
+        output = subprocess.check_output(cmd, stdin=tf)
     except subprocess.CalledProcessError as e:
-        logger.error("send_voevent failed")
+        logger.error("send_voevent failed, output was"+e.output)
         raise e
-    
+    return output
+
     
 def dummy_send_to_comet_stub(voevent, host='localhost', port=8098):
     tf = tempfile.NamedTemporaryFile(delete=False)

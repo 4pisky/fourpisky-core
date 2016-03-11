@@ -12,6 +12,7 @@ from fourpisky.scripts import process_voevent as pv_mod
 pv_mod.fps.comms.email.send_email = pv_mod.fps.comms.email.dummy_email_send_function
 pv_mod.fps.comms.comet.send_voevent = pv_mod.fps.comms.comet.dummy_send_to_comet_stub
 
+@profile
 def main():
     pv_mod.default_archive_root = "./"
     test_packet = fourpisky.voevent.create_4pisky_test_trigger_voevent()

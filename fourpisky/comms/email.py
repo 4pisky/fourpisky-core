@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import smtplib
 import sendgrid
 from sendgrid import SendGridClient
-import fourpisky as ps
+import fourpisky.utils as utils
 import logging
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ def send_email_by_smtp(recipient_addresses,
 
     logger.debug("Loaded account, starting SMTP session")
 
-    recipient_addresses = ps.utils.listify(recipient_addresses)
+    recipient_addresses = utils.listify(recipient_addresses)
 
     smtpserver = smtplib.SMTP(account.smtp_server,
                               account.smtp_port)
@@ -98,7 +98,7 @@ def dummy_email_send_function(recipient_addresses,
                               ):
     print "*************"
     print "Would have sent an email to:"
-    print ps.utils.listify(recipient_addresses)
+    print utils.listify(recipient_addresses)
     print "Subject:", subject
     print "--------------"
     print body_text
