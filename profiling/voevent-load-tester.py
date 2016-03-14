@@ -12,7 +12,6 @@ https://github.com/jdswinbank/Comet/issues/36
 
 """
 
-
 import multiprocessing
 import fourpisky
 import fourpisky.comms.comet
@@ -20,8 +19,50 @@ import fourpisky.voevent
 import logging
 import datetime
 
+import time
+import threading
+from functools import wraps
+
+import signal
+import sys
 
 logger = logging.getLogger('load-test')
+
+
+def rate_limited(max_per_second):
+    """
+    Decorator that make functions not be called faster than
+    """
+    lock = threading.Lock()
+    min_interval = 1.0 / float(max_per_second)
+
+    def decorate(func):
+        last_time_called = [0.0]
+
+        @wraps(func)
+        def rate_limited_function(*args, **kwargs):
+            lock.acquire()
+            elapsed = time.clock() - last_time_called[0]
+            left_to_wait = min_interval - elapsed
+
+            if left_to_wait > 0:
+                time.sleep(left_to_wait)
+
+            lock.release()
+
+            ret = func(*args, **kwargs)
+            last_time_called[0] = time.clock()
+            return ret
+
+        return rate_limited_function
+
+    return decorate
+
+
+def init_worker_to_ignore_sigint():
+    #Use the readymade 'SIG_IGN' (ignore signal) handler to handle SIGINT
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
 
 def generate_and_send_packet():
     now = datetime.datetime.utcnow()
@@ -36,6 +77,7 @@ def generate_and_send_packet():
             ivorn, e.output)
     return "Sent {}".format(ivorn)
 
+
 def logger_callback(summary):
     """Used to return the 'job complete' log message in the master thread."""
     if summary.startswith('Error'):
@@ -45,19 +87,33 @@ def logger_callback(summary):
         pass
         # logger.info('*** Job complete: ' + summary)
 
+
 def main():
     n_threads = 6
-    n_events = 1000
-    pool = multiprocessing.Pool(n_threads)
-    results=[]
+    n_events = 30
+    pool = multiprocessing.Pool(n_threads,
+                                initializer=init_worker_to_ignore_sigint)
+    results = []
     start = datetime.datetime.utcnow()
-    for i in range(n_events):
-        # print "Spawning number", i
-        # logger_callback(generate_and_send_packet())
-        # continue
+
+    @rate_limited(10)
+    def add_job_to_pool():
         results.append(pool.apply_async(generate_and_send_packet,
                                         callback=logger_callback
                                         ))
+
+    logging.info("Beginning run...")
+    try:
+        for i in range(n_events):
+            logger.debug('Sending event #{}'.format(i))
+            add_job_to_pool()
+    except KeyboardInterrupt:
+        logger.warning("Caught KeyboardInterrupt, terminating")
+        pool.terminate()
+        pool.join()
+        return 1
+
+    logging.info("... Done.")
 
     n_fails = 0
     resultset = set()
@@ -65,24 +121,21 @@ def main():
         # print res.get(), type(res.get())
         summary = obj.get()
         if summary.startswith('Error'):
-            n_fails+=1
+            n_fails += 1
         resultset.add(summary)
     end = datetime.datetime.utcnow()
 
-    assert len(resultset)== len(results)
+    assert len(resultset) == len(results)
     time_taken = (end - start).total_seconds()
     print "Sent {} events in {} seconds".format(
         n_events, time_taken
     )
-    print "Rate: {} /second ".format(n_events/time_taken)
-    print "Or {} /second/thread".format(n_events/time_taken/n_threads)
-    print "{} failed (proportion {})".format(n_fails, float(n_fails)/n_events)
-
-
+    print "Rate: {} /second ".format(n_events / time_taken)
+    print "Or {} /second/thread".format(n_events / time_taken / n_threads)
+    print "{} failed (proportion {})".format(n_fails, float(n_fails) / n_events)
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-    logging.info("Beginning run...")
-    main()
-    logging.info("... Done.")
+    logging.basicConfig(level=logging.DEBUG)
+    sys.exit(main())
+
