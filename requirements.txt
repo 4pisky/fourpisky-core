@@ -1,4 +1,5 @@
 astropy
+celery[msgpack]
 comet>=2
 click
 voevent-parse>=0.9.3

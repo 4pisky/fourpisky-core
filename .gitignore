@@ -4,4 +4,5 @@
 .settings
 *.pyc
 *.egg-info
+*.log
 twistd.pid

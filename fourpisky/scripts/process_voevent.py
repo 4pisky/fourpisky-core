@@ -167,6 +167,9 @@ def archive_voevent(v, rootdir):
     fps.utils.ensure_dir(fullpath)
     with open(fullpath, 'w') as f:
         voeventparse.dump(v, f)
+    logger.debug("Wrote voevent {} to {}".format(
+        v.attrib['ivorn'], fullpath
+    ))
 
 def generate_report_text(alert, sites, actions_taken,
                          report_timestamp=None):

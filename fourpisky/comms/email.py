@@ -96,10 +96,16 @@ def dummy_email_send_function(recipient_addresses,
                               subject,
                               body_text
                               ):
-    print "*************"
-    print "Would have sent an email to:"
-    print utils.listify(recipient_addresses)
-    print "Subject:", subject
-    print "--------------"
-    print body_text
-    print "*************"
+    logger.debug("*************")
+    logger.debug("""\
+Would have sent an email to:
+{recipients}
+Subject: {subject}
+Subject:"+ subject
+--------------
+{body_text}
+*************""".format(
+        recipients=utils.listify(recipient_addresses),
+        subject=subject,
+        body_text=body_text
+    ))

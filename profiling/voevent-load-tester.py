@@ -70,8 +70,15 @@ def generate_and_send_packet():
     # return "UUID:"+uuid
     try:
         test_packet = fourpisky.voevent.create_4pisky_test_trigger_voevent()
-        ivorn = test_packet.attrib['ivorn']
-        fourpisky.comms.comet.send_voevent(test_packet)
+        dummy_packet = fourpisky.voevent.create_skeleton_4pisky_voevent(
+            substream="DUMMYPACKET",
+            stream_id=fourpisky.voevent.generate_stream_id(now),
+            date=now
+        )
+        # sendpacket = dummy_packet
+        sendpacket = test_packet
+        ivorn = sendpacket.attrib['ivorn']
+        fourpisky.comms.comet.send_voevent(sendpacket)
     except Exception as e:
         return "Error sending {}:\n {}".format(
             ivorn, e.output)
@@ -89,14 +96,15 @@ def logger_callback(summary):
 
 
 def main():
-    n_threads = 6
-    n_events = 30
+    n_threads = 4
+    n_events = 100
+    n_per_second = 5
     pool = multiprocessing.Pool(n_threads,
                                 initializer=init_worker_to_ignore_sigint)
     results = []
     start = datetime.datetime.utcnow()
 
-    @rate_limited(10)
+    # @rate_limited(n_per_second)
     def add_job_to_pool():
         results.append(pool.apply_async(generate_and_send_packet,
                                         callback=logger_callback

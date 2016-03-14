@@ -15,7 +15,7 @@ def send_voevent(voevent, host='localhost', port=8098):
         cmd = ['comet-sendvo']
         cmd.append('--host=' + host)
         cmd.append('--port=' + str(port))
-        output = subprocess.check_output(cmd, stdin=tf)
+        output = subprocess.check_output(cmd, stdin=tf,)
     except subprocess.CalledProcessError as e:
         logger.error("send_voevent failed, output was"+e.output)
         raise e
