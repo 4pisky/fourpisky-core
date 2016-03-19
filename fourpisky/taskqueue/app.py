@@ -11,7 +11,7 @@ import logging
 
 fps_app = Celery('fourpisky',
                  broker='amqp://guest@localhost//',
-                 include=['fourpisky.tasks'])
+                 include=['fourpisky.taskqueue.tasks'])
 
 if fps_env_vars.celery_config_module in os.environ:
     try:

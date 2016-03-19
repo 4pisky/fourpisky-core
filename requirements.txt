@@ -8,6 +8,7 @@ voeventdb.server
 #amiobs>=0.3.2
 ipython
 Jinja2
+logging_tree
 python-dateutil
 pytz
 pytest
