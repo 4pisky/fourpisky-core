@@ -125,7 +125,6 @@ def send_initial_ami_alert_vo_notification(alert):
     v = fps.voevent.create_ami_followup_notification(alert,
                                                      stream_id=stream_id,
                                                      request_status=request_status)
-    logger.debug("Sending voevent {}".format(v.attrib['ivorn']))
     fps.comms.comet.send_voevent(v, contacts.local_vobroker.ipaddress,
                                  contacts.local_vobroker.port)
 
@@ -160,7 +159,7 @@ def test_logic(v):
         recipient_addresses=[c.email for c in contacts.test_contacts],
         subject=notification_email_prefix + '[TEST] Test packet received',
         body_text=msg)
-    archive_voevent(v, rootdir=default_archive_root)
+    # archive_voevent(v, rootdir=default_archive_root)
 
 
 def archive_voevent(v, rootdir):

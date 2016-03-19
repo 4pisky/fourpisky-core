@@ -7,6 +7,7 @@ import textwrap
 logger = logging.getLogger(__name__)
 
 def send_voevent(voevent, host='localhost', port=8098):
+    logger.debug("comet-sendvo voevent: {}".format(voevent.attrib['ivorn']))
     tf = tempfile.TemporaryFile()
     voeventparse.dump(voevent, tf)
     tf.seek(0)
