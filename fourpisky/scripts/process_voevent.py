@@ -75,7 +75,9 @@ def swift_bat_grb_logic(v):
             actions_taken.append('Target unsuitable for ami: ' + ami_reject)
     else:
         actions_taken.append('Alert ignored: ' + alert_rejection)
-
+    logger.info("Swift BAT GRB packet received, actions taken:\n{}".format(
+        actions_taken
+    ))
     send_alert_report(alert, actions_taken, grb_contacts)
 
 
@@ -123,6 +125,7 @@ def send_initial_ami_alert_vo_notification(alert):
     v = fps.voevent.create_ami_followup_notification(alert,
                                                      stream_id=stream_id,
                                                      request_status=request_status)
+    logger.debug("Sending voevent {}".format(v.attrib['ivorn']))
     fps.comms.comet.send_voevent(v, contacts.local_vobroker.ipaddress,
                                  contacts.local_vobroker.port)
 

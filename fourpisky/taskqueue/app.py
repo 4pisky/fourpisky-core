@@ -24,10 +24,15 @@ else:
     fps_app.config_from_object('fourpisky.taskqueue.default_config')
 
 
+class NoTaskQueueFilter(logging.Filter):
+    def filter(self, record):
+        return not record.name.startswith('fourpisky.taskqueue')
+
 @after_setup_task_logger.connect
 def setup_task_logfiles(**kwargs):
     logfile_path = fps_app.conf.CELERY_TASK_LOGFILE
     debug_logfile_path = fps_app.conf.CELERY_TASK_DEBUG_LOGFILE
+    actions_logfile_path = fps_app.conf.FPS_ACTIONS_LOGFILE
 
     log_chunk_bytesize = 5e6
     full_date_fmt = "%y-%m-%d (%a) %H:%M:%S"
@@ -48,11 +53,29 @@ def setup_task_logfiles(**kwargs):
     debug_logger.setLevel(logging.DEBUG)
     debug_logger.propagate = False
 
+    action_logger = logging.handlers.RotatingFileHandler(actions_logfile_path,
+                            maxBytes=log_chunk_bytesize, backupCount=10)
+    action_logger.setFormatter(named_formatter)
+    action_logger.setLevel(logging.DEBUG)
+    action_logger.propagate = False
+    action_logger.addFilter(NoTaskQueueFilter())
+
     logger = logging.getLogger('fourpisky')
     logger.propagate = False
     logger.setLevel(logging.DEBUG)
     logger.handlers.append(info_logger)
     logger.handlers.append(debug_logger)
+    logger.handlers.append(action_logger)
+
+
+    logger = logging.getLogger('voeventdb')
+    logger.propagate = False
+    logger.setLevel(logging.DEBUG)
+    logger.handlers.append(info_logger)
+    logger.handlers.append(debug_logger)
+
+
+
     from logging_tree import printout
     printout()
 

@@ -15,17 +15,19 @@ from fourpisky.triggers import test_trigger_substream
 
 def main():
     now = datetime.datetime.utcnow()
-    test_packet = fourpisky.voevent.create_skeleton_4pisky_voevent(
-        substream=test_trigger_substream,
-        stream_id=now.strftime(datetime_format_short),
-        role=voeventparse.definitions.roles.test,
-        date=now,
-    )
+    test_packet = fourpisky.voevent.create_4pisky_test_trigger_voevent()
+    dummy_packet = fourpisky.voevent.create_skeleton_4pisky_voevent(
+            substream="DUMMYPACKET",
+            stream_id=fourpisky.voevent.generate_stream_id(now),
+            date=now
+        )
+    sendpacket = dummy_packet
+    # sendpacket = test_packet
 
-    print "Sending packet, ivorn: ", test_packet.attrib['ivorn']
+    print "Sending packet, ivorn: ", sendpacket.attrib['ivorn']
     broker = contacts.local_vobroker
     before = datetime.datetime.utcnow()
-    fourpisky.comms.comet.send_voevent(test_packet, broker.ipaddress, broker.port)
+    fourpisky.comms.comet.send_voevent(sendpacket, broker.ipaddress, broker.port)
     after = datetime.datetime.utcnow()
     print "Done. Sending took", (after - before).total_seconds(), "seconds."
 
