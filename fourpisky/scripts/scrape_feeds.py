@@ -43,7 +43,7 @@ def main(hashdb_path, logfile, voevent_pause_secs,
                     process_function(v)
                     logger.info(
                         "Processed new Voevent: {}".format(v.attrib['ivorn']))
-                    #Momentary pause to avoid overloading the puny cloud-vm
+                    #Momentary pause to avoid spamming the VOEvent network
                     time.sleep(voevent_pause_secs)
                 except KeyboardInterrupt:
                     raise
@@ -68,7 +68,7 @@ def main(hashdb_path, logfile, voevent_pause_secs,
 default_dbname = os.environ.get('VOEVENTDB_DBNAME',
                                 dbconfig.testdb_corpus_url.database)
 default_sleeptime=os.environ.get('FPS_FEED_SLEEPTIME',
-                                10.0)
+                                '0.5')
 
 def direct_store_voevent(voevent):
     s = session_registry()
