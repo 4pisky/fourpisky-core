@@ -15,11 +15,15 @@ with open(datapaths.asassn_feed_page_2016_01_11) as f:
         asassn_content_2 = f.read()
 
 def test_content_parsing():
-    events = asassn.parse_content_to_dict_list(asassn_content_1)
+    feed = asassn.AsassnFeed()
+    feed._content = asassn_content_1
+    events = feed.parse_content_to_event_data_list()
     assert len(events) == 1357
 
 def test_streamid_generation():
-    events = asassn.parse_content_to_dict_list(asassn_content_1)
+    feed = asassn.AsassnFeed()
+    feed._content = asassn_content_1
+    events = feed.parse_content_to_event_data_list()
     for e in events:
         try:
             id = asassn.extract_asassn_id(e)
@@ -34,7 +38,7 @@ def test_assasn_voevent_generation():
         os.makedirs(tmpdir)
     feed2 = asassn.AsassnFeed()
     feed2._content = asassn_content_2
-    for feed_id in feed2.id_row_map.keys()[:10]:
+    for feed_id in feed2.event_id_data_map.keys()[:10]:
     # for feed_id in feed2.id_row_map.keys():
         v = feed2.generate_voevent(feed_id)
         stream_id = feed2.feed_id_to_stream_id(feed_id)
@@ -66,7 +70,7 @@ def test_localdb_deduplication(fixture_db_session):
     feed1 = asassn.AsassnFeed()
     feed1._content = asassn_content_1
     feed1_row_ids = feed1.determine_new_ids_from_localdb()
-    assert len(feed1_row_ids) == len(feed1.id_row_map)
+    assert len(feed1_row_ids) == len(feed1.event_id_data_map)
 
     s = fixture_db_session
     for id in feed1_row_ids:
@@ -81,7 +85,7 @@ def test_localdb_deduplication(fixture_db_session):
     feed2 = asassn.AsassnFeed()
     feed2._content = asassn_content_2
     feed2_new_ids = feed2.determine_new_ids_from_localdb()
-    assert len(feed2_new_ids) == len(feed2.id_row_map) - len(feed1.id_row_map)
+    assert len(feed2_new_ids) == len(feed2.event_id_data_map) - len(feed1.event_id_data_map)
     s = fixture_db_session
     for id in feed2_new_ids:
         v = feed2.generate_voevent(id)

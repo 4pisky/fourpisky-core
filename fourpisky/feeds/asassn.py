@@ -1,31 +1,24 @@
 import lxml
 import lxml.html
-import shelve
 from collections import defaultdict
-from contextlib import closing
-import urllib2
-import requests
-import hashlib
 import voeventparse as vp
 import datetime
 import iso8601
 from astropy.coordinates import SkyCoord
 import astropy.units as u
-from voeventdb.server.database import session_registry
-import voeventdb.server.database.convenience as dbconvenience
 from fourpisky.voevent import (
-    ivorn_base,
     create_skeleton_4pisky_voevent,
     asassn_alert_substream,
     get_stream_ivorn_prefix,
 )
-from fourpisky.utils import sanitise_string_for_stream_id
+
+from fourpisky.feeds.feedbase import FeedBase
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class AsassnFeed(object):
+class AsassnFeed(FeedBase):
     name = "ASASSN webpage"
     url = "http://www.astronomy.ohio-state.edu/~assassin/transients.html"
     substream = asassn_alert_substream
@@ -33,93 +26,15 @@ class AsassnFeed(object):
     hash_byte_range = (0, 10000)
     hash_cache_path = None
 
-    #VOEvent details:
+    # VOEvent details:
     text_params_groupname = 'asassn_params'
     url_params_groupname = 'asassn_urls'
 
     def __init__(self, hash_cache_path=None):
-        self.hash_cache_path = hash_cache_path
-        self._content = None
-        self._old_hash = None
-        self._new_hash = None
-        self._id_row_map = None
-
-    @property
-    def content(self):
-        if self._content is None:
-            r = requests.get(self.url)
-            self._content = r.content
-        return self._content
-
-    @property
-    def old_hash(self):
-        if not self.hash_cache_path:
-            logger.debug("No hash-cache path set")
-            return None
-        with closing(shelve.open(self.hash_cache_path)) as hash_cache:
-            if self.url in hash_cache:
-                return hash_cache[self.url]
-            else:
-                logger.debug("Feed {} not found in hash-cache at {}".format(
-                        self.url, self.hash_cache_path
-                ))
-        return None
-
-    @property
-    def new_hash(self):
-        if not self._new_hash:
-            if self.hash_byte_range:
-                logger.debug(
-                        "Fetching bytes {start}-{end} from {url} for hash-check".format(
-                                start=self.hash_byte_range[0],
-                                end=self.hash_byte_range[1],
-                                url=self.url,
-                        ))
-                req = urllib2.Request(self.url)
-                req.headers['Range'] = 'bytes={}-{}'.format(
-                        *self.hash_byte_range)
-                data = urllib2.urlopen(req).read()
-            else:
-                data = self.content
-            self._new_hash = hashlib.md5(data).hexdigest()
-        return self._new_hash
-
-    @property
-    def mock_new_hash(self):
-        """
-        Compute the hash of byte-range from pre-assigned content.
-
-        (Used for testing.)
-        """
-        return hashlib.md5(
-                self._content[self.hash_byte_range[0]:self.hash_byte_range[1]]
-        ).hexdigest()
-
-    @property
-    def id_row_map(self):
-        if self._id_row_map is None:
-            row_list = parse_content_to_dict_list(self.content)
-            self._id_row_map = {rowdict_to_feed_id(rd): rd for rd in row_list}
-        return self._id_row_map
-
-    def save_new_hash(self):
-        with closing(shelve.open(self.hash_cache_path)) as hash_cache:
-            hash_cache[self.url] = self.new_hash
-        logger.debug("Inserted hash for feed {} in cache {}; md5={}".format(
-                self.url, self.hash_cache_path, self.new_hash
-        ))
-
-    def feed_id_to_stream_id(self, feed_id):
-        # Currently just a wrapper, bound to class for convenience.
-        # Could be customised in future though.
-        return sanitise_string_for_stream_id(feed_id)
-
-    def feed_id_to_ivorn(self, feed_id):
-        safe_id = self.feed_id_to_stream_id(feed_id)
-        return self.stream_ivorn_prefix + safe_id
+        super(AsassnFeed, self).__init__(hash_cache_path)
 
     def generate_voevent(self, feed_id):
-        rowdict = self.id_row_map[feed_id]
+        rowdict = self.event_id_data_map[feed_id]
         params = rowdict['param']
         urls = rowdict['url']
         stream_id = self.feed_id_to_stream_id(feed_id)
@@ -187,43 +102,42 @@ class AsassnFeed(object):
 
         return v
 
-    def determine_new_ids_from_localdb(self):
-        s = session_registry()
-        new_ids = []
-        logger.debug("Checking database {} for duplicates from feed {}".format(
-            s.bind.engine.url.database, self.name
-        ))
-        for feed_id in self.id_row_map:
-            ivo = self.feed_id_to_ivorn(feed_id)
-            if not dbconvenience.ivorn_present(s, ivo):
-                dupes_prefix = self.get_ivorn_prefix_for_matched_timestamp(ivo)
-                if dbconvenience.ivorn_prefix_present(s, dupes_prefix):
-                    logger.warning(
-                            "Possible duplicate - timestamp prefixes match but "
-                            "full ivorn has changed (will not insert): {}".format(
-                                    ivo
-                            ))
-                else:
-                    new_ids.append(feed_id)
-        return new_ids
-
-    def get_ivorn_prefix_for_matched_timestamp(self, ivorn):
+    def event_data_to_event_id(self, event_data):
         """
-        Determines what a possible duplicate ivorn might be prefixed by.
+        Derive a feed-specific identifier for a given event.
 
-        Used for duplicate checking - assumes timestamp unchanging even if the
-        event gets renamed. We extract the timestamp portion from the given
-        IVORN, then re-append it to the stream-ivorn prefix.
+        Args:
+            event_data: Feed specific datastructure, typically just a dictionary.
+
+        NB feed id should contain timestamp prefix followed by underscore,
+        we use this for deduplication.
+        (Even if the event details are updated the timestamp should remain the
+        same.)
         """
-        stream_id = ivorn[len(self.stream_ivorn_prefix):]
-        return self.stream_ivorn_prefix + stream_id.split('_', 1)[0]
+        external_id = extract_asassn_id(event_data)
+        # We reformat the date-string to zero-pad the day digit as needed.
+        timestamp_dt = asassn_timestamp_str_to_datetime(
+                event_data['param'][AsassnKeys.detection_timestamp]).replace(
+            tzinfo=None)
+        uniform_date_str = timestamp_dt.strftime('%Y-%m-%d')
+        start_of_day = datetime.datetime(timestamp_dt.year,
+                                         timestamp_dt.month,
+                                         timestamp_dt.day
+                                         )
+        # Friday afternoon kludge:
+        day_fraction_str = str(
+            (timestamp_dt - start_of_day).total_seconds() / 3600. / 24.)[1:]
+        feed_id = ''.join((uniform_date_str, day_fraction_str,
+                           '_', external_id))
+        return feed_id
+
+    def parse_content_to_event_data_list(self):
+        tree = lxml.html.fromstring(self.content)
+        events = parse_pagetree(tree)
+        return events
 
 
 # ==========================================================================
-def parse_content_to_dict_list(content):
-    tree = lxml.html.fromstring(content)
-    events = parse_pagetree(tree)
-    return events
 
 
 timestamp_id_map = {
@@ -272,36 +186,18 @@ def extract_asassn_id(rowdict):
                              'no id found')
     return external_id
 
+
 def asassn_timestamp_str_to_datetime(timestamp_str):
-        if '.' in timestamp_str:
-            date_str, day_fraction_str = timestamp_str.split('.')
-            day_fraction_str = '0.' + day_fraction_str
-        else:
-            date_str = timestamp_str
-            day_fraction_str = 0.
+    if '.' in timestamp_str:
+        date_str, day_fraction_str = timestamp_str.split('.')
+        day_fraction_str = '0.' + day_fraction_str
+    else:
+        date_str = timestamp_str
+        day_fraction_str = 0.
 
-        timestamp_dt = (iso8601.parse_date(date_str) +
-                        datetime.timedelta(days=float(day_fraction_str)))
-        return timestamp_dt
-
-def rowdict_to_feed_id(rowdict):
-    """
-    NB timestamp goes first in the feed id, we rely on this for deduplication.
-    """
-    external_id = extract_asassn_id(rowdict)
-    #We reformat the date-string to zero-pad the day digit as needed.
-    timestamp_dt = asassn_timestamp_str_to_datetime(
-            rowdict['param'][AsassnKeys.detection_timestamp]).replace(tzinfo=None)
-    uniform_date_str = timestamp_dt.strftime('%Y-%m-%d')
-    start_of_day = datetime.datetime(timestamp_dt.year,
-                                     timestamp_dt.month,
-                                     timestamp_dt.day
-                                     )
-    #Friday afternoon kludge:
-    day_fraction_str = str((timestamp_dt - start_of_day).total_seconds()/3600./24.)[1:]
-    feed_id = ''.join((uniform_date_str,day_fraction_str,
-                      '_',external_id))
-    return feed_id
+    timestamp_dt = (iso8601.parse_date(date_str) +
+                    datetime.timedelta(days=float(day_fraction_str)))
+    return timestamp_dt
 
 
 # =======================================================================
