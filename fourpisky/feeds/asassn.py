@@ -191,7 +191,7 @@ class AsassnFeed(object):
         s = session_registry()
         new_ids = []
         logger.debug("Checking database {} for duplicates from feed {}".format(
-            s.bind.url.database, self.name
+            s.bind.engine.url.database, self.name
         ))
         for feed_id in self.id_row_map:
             ivo = self.feed_id_to_ivorn(feed_id)

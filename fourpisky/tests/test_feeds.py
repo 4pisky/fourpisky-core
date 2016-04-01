@@ -3,6 +3,7 @@ from fourpisky.tests.resources import datapaths
 import fourpisky.feeds.asassn as asassn
 import voeventparse as vp
 from voeventdb.server.database.models import Voevent
+import os
 import pytest
 
 
@@ -27,7 +28,10 @@ def test_streamid_generation():
             print e
             pass
 
-def test_voevent_generation():
+def test_assasn_voevent_generation():
+    tmpdir = '/tmp/fps_feed_test/assasn'
+    if not os.path.isdir(tmpdir):
+        os.makedirs(tmpdir)
     feed2 = asassn.AsassnFeed()
     feed2._content = asassn_content_2
     for feed_id in feed2.id_row_map.keys()[:10]:
@@ -35,7 +39,8 @@ def test_voevent_generation():
         v = feed2.generate_voevent(feed_id)
         stream_id = feed2.feed_id_to_stream_id(feed_id)
         vp.assert_valid_as_v2_0(v)
-        with open('/tmp/asassn/{}.xml'.format(stream_id), 'w') as f:
+        outpath = os.path.join(tmpdir,'{}.xml'.format(stream_id))
+        with open(outpath, 'w') as f:
             vp.dump(v, f)
     # for id in id_map.keys():
     #     v = feed2.generate_voevent(id)
