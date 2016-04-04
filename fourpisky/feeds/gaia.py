@@ -48,7 +48,7 @@ class GaiaFeed(FeedBase):
     hash_cache_path = None
 
     # VOEvent details:
-    text_params_groupname = 'gaia_params'
+    text_params_groupname = 'gsaweb_params'
 
     def __init__(self, hash_cache_path=None):
         super(GaiaFeed, self).__init__(hash_cache_path)
@@ -88,7 +88,11 @@ class GaiaFeed(FeedBase):
                                            date=datetime.datetime.utcnow()
                                            )
 
-        vp.add_how(v, references=vp.Reference(uri=self.url))
+        gsaw_event_url = 'http://gsaweb.ast.cam.ac.uk/alerts/alert/'+feed_id
+        vp.add_how(v, references=[vp.Reference(uri=self.url),
+                                  vp.Reference(uri=gsaw_event_url)
+                                  ]
+                   )
         v.How.Description = "Parsed from GAIA Science Alerts listings by 4PiSky-Bot."
 
         posn_sc = SkyCoord(event_data[GaiaKeys.ra],

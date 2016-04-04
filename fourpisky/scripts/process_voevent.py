@@ -7,7 +7,7 @@ import click
 from fourpisky.formatting import fps_template_env
 from fourpisky.local import contacts
 from fourpisky.visibility import get_ephem
-from fourpisky.triggers import swift, asassn
+from fourpisky.triggers import swift, asassn, gaia
 from fourpisky.triggers import is_test_trigger
 from fourpisky.voevent import ivorn_base
 from fourpisky.sites import AmiLA, Pt5m
@@ -40,10 +40,12 @@ def cli():
 
 def voevent_logic(v):
     #SWIFT BAT GRB alert:
-    if swift.filters.is_bat_grb_pkt(v):
+    if swift.BatGrb.packet_type_matches(v):
         swift_bat_grb_logic(v)
-    if asassn.filters.is_fps_asassn_packet(v):
+    if asassn.AsassnAlert.packet_type_matches(v):
         asassn_alert_logic(v)
+    if gaia.GaiaAlert.packet_type_matches(v):
+        gaia_alert_logic(v)
     if is_test_trigger(v):
         test_logic(v)
 #    archive_voevent(v, rootdir=default_archive_root)
@@ -84,7 +86,13 @@ def swift_bat_grb_logic(v):
 def asassn_alert_logic(v):
     actions_taken=[]
     alert = asassn.AsassnAlert(v)
-    if asassn.filters.is_recent(alert):
+    if alert.is_recent():
+        send_alert_report(alert, actions_taken, grb_contacts)
+
+def gaia_alert_logic(v):
+    actions_taken = []
+    alert = gaia.GaiaAlert(v)
+    if alert.is_recent():
         send_alert_report(alert, actions_taken, grb_contacts)
 
 
@@ -136,7 +144,7 @@ def send_alert_report(alert, actions_taken, contacts):
                                 actions_taken)
     subject = alert.id
     if alert.inferred_name is not None:
-              subject+= ' / ' + alert.inferred_name
+        subject+= ' / ' + alert.inferred_name
     fps.comms.email.send_email([p.email for p in contacts],
                                notification_email_prefix + subject,
                                notify_msg)

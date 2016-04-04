@@ -27,9 +27,9 @@ def main():
 
     hr = "********************************************************************"
     print hr
-    test_packet(datapaths.asassn_alert_16ab)
+    test_packet(datapaths.gaia_alert_16ajo)
     print hr
-    test_packet(datapaths.asassn_alert_AT2016D)
+
 
 
 if __name__ == "__main__":

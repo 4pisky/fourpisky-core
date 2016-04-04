@@ -36,8 +36,8 @@ def test_voevent_generation():
         os.makedirs(tmpdir)
     feed = gaia.GaiaFeed()
     feed._content = gaia_content
-    for feed_id in feed.event_id_data_map.keys()[:10]:
-    # for feed_id in feed2.id_row_map.keys():
+    # for feed_id in feed.event_id_data_map.keys()[:10]:
+    for feed_id in feed.event_id_data_map.keys():
         v = feed.generate_voevent(feed_id)
         stream_id = feed.feed_id_to_stream_id(feed_id)
         vp.assert_valid_as_v2_0(v)

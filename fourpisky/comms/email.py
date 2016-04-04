@@ -101,7 +101,6 @@ def dummy_email_send_function(recipient_addresses,
 Would have sent an email to:
 {recipients}
 Subject: {subject}
-Subject:"+ subject
 --------------
 {body_text}
 *************""".format(
