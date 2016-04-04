@@ -25,12 +25,22 @@ def test_streamid_generation():
     feed._content = asassn_content_1
     events = feed.parse_content_to_event_data_list()
     for e in events:
-        try:
+        # try:
             id = asassn.extract_asassn_id(e)
             assert isinstance(id, string_types)
-        except ValueError as e:
-            print e
-            pass
+        # except ValueError as e:
+        #     print e
+        #     pass
+
+def test_ivorn_generation_is_consistent():
+    """
+    Check any refactoring does not result in changes to format from previously
+    broadcast IVORNs:
+    """
+    feed = asassn.AsassnFeed()
+    feed._content = asassn_content_1
+    ivorn = feed.feed_id_to_ivorn('2016-01-09.28_ASASSN-16ad')
+    assert ivorn == 'ivo://voevent.4pisky.org/ASASSN#2016-01-09.28_ASASSN-16ad'
 
 def test_assasn_voevent_generation():
     tmpdir = '/tmp/fps_feed_test/assasn'

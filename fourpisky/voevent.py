@@ -15,6 +15,7 @@ test_response_substream = 'TEST-RESPONSE'
 alarrm_request_substream = 'ALARRM-REQUEST'
 alarrm_obs_test_substream = 'ALARRM-OBSTEST'
 asassn_alert_substream = 'ASASSN'
+gaia_alert_substream = 'GAIA'
 
 
 def get_stream_ivorn_prefix(substream):

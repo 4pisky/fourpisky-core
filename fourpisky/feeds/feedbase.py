@@ -110,27 +110,19 @@ class FeedBase(object):
 
 
     def feed_id_to_stream_id(self, feed_id):
-        # Currently just a wrapper, bound to class for convenience.
-        # Could be customised in future though.
+        """
+        Default implementation simply removes non-allowed characters.
+        """
         return sanitise_string_for_stream_id(feed_id)
 
     def feed_id_to_ivorn(self, feed_id):
-        safe_id = self.feed_id_to_stream_id(feed_id)
-        return self.stream_ivorn_prefix + safe_id
+        return self.stream_ivorn_prefix + self.feed_id_to_stream_id(feed_id)
 
-    def generate_voevent(self, feed_id):
+    def get_ivorn_prefix_for_duplicate(self, feed_id):
+        """
+        Determines what a possible duplicate ivorn might be prefixed by
+        """
         raise NotImplementedError
-
-    def get_ivorn_prefix_for_matched_timestamp(self, ivorn):
-        """
-        Determines what a possible duplicate ivorn might be prefixed by.
-
-        Used for duplicate checking - assumes timestamp unchanging even if the
-        event gets renamed. We extract the timestamp portion from the given
-        IVORN, then re-append it to the stream-ivorn prefix.
-        """
-        stream_id = ivorn[len(self.stream_ivorn_prefix):]
-        return self.stream_ivorn_prefix + stream_id.split('_', 1)[0]
 
     def determine_new_ids_from_localdb(self):
         """
@@ -149,7 +141,7 @@ class FeedBase(object):
         for feed_id in self.event_id_data_map:
             ivo = self.feed_id_to_ivorn(feed_id)
             if not dbconvenience.ivorn_present(s, ivo):
-                dupes_prefix = self.get_ivorn_prefix_for_matched_timestamp(ivo)
+                dupes_prefix = self.get_ivorn_prefix_for_duplicate(feed_id)
                 if dbconvenience.ivorn_prefix_present(s, dupes_prefix):
                     logger.warning(
                             "Possible duplicate - timestamp prefixes match but "
@@ -159,3 +151,6 @@ class FeedBase(object):
                 else:
                     new_ids.append(feed_id)
         return new_ids
+
+    def generate_voevent(self, feed_id):
+        raise NotImplementedError

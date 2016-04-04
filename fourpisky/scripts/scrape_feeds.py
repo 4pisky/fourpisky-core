@@ -1,6 +1,6 @@
 import click
 import os
-from fourpisky.feeds import (AsassnFeed, )
+from fourpisky.feeds import (AsassnFeed, GaiaFeed)
 from fourpisky.comms import comet
 import sqlalchemy
 from voeventdb.server.database import session_registry
@@ -10,7 +10,6 @@ import logging
 import logging.handlers
 import time
 import subprocess
-
 
 
 def main(hashdb_path, logfile, voevent_pause_secs,
@@ -30,28 +29,32 @@ def main(hashdb_path, logfile, voevent_pause_secs,
     """
     setup_logging(logfile)
     logger = logging.getLogger('scraper')
-    feed_list = [AsassnFeed(hashdb_path)]
+    feed_list = [AsassnFeed(hashdb_path),
+                 GaiaFeed(hashdb_path),
+                 ]
 
     for feed in feed_list:
         if ((feed.new_hash != feed.old_hash)
             or feed.old_hash is None):
             new_ids = feed.determine_new_ids_from_localdb()
             for feed_id in sorted(new_ids,
-                             key=lambda id:feed.feed_id_to_stream_id(id)):
+                                  key=lambda id: feed.feed_id_to_stream_id(id)):
                 try:
                     v = feed.generate_voevent(feed_id)
                     process_function(v)
                     logger.info(
                         "Processed new Voevent: {}".format(v.attrib['ivorn']))
-                    #Momentary pause to avoid spamming the VOEvent network
+                    # Momentary pause to avoid spamming the VOEvent network
                     time.sleep(voevent_pause_secs)
                 except KeyboardInterrupt:
                     raise
                 except subprocess.CalledProcessError:
-                    logger.warning("VOEvent insertion failed for {}".format(feed_id))
+                    logger.warning(
+                        "VOEvent insertion failed for {}".format(feed_id))
                 except:
                     logger.exception(
-                        "Error processing id {} in feed".format(feed_id, feed.url))
+                        "Error processing id {} in feed".format(feed_id,
+                                                                feed.url))
             feed.save_new_hash()
             if not new_ids:
                 logger.debug("Feed {} changed but found no new VOEvents".format(
@@ -59,31 +62,33 @@ def main(hashdb_path, logfile, voevent_pause_secs,
                 ))
         else:
             logger.debug(
-                    "Hash in {} matches for feed: '{}'; moving on.".format(
-                        hashdb_path,
-                        feed.name,
-            ))
+                "Hash in {} matches for feed: '{}'; moving on.".format(
+                    hashdb_path,
+                    feed.name,
+                ))
 
 
 default_dbname = os.environ.get('VOEVENTDB_DBNAME',
                                 dbconfig.testdb_corpus_url.database)
-default_sleeptime=os.environ.get('FPS_FEED_SLEEPTIME',
-                                '0.5')
+default_sleeptime = os.environ.get('FPS_FEED_SLEEPTIME',
+                                   '0.5')
+
 
 def direct_store_voevent(voevent):
     s = session_registry()
     s.add(Voevent.from_etree(voevent))
     s.commit()
 
+
 @click.command()
 @click.option('--dbname',
-                default = default_dbname,
-                help="Database to check for duplicates, default='{}'".format(
+              default=default_dbname,
+              help="Database to check for duplicates, default='{}'".format(
                   default_dbname
               ))
 @click.option('--direct-store', is_flag=True,
               help='Store the VOEvents directly in the local database'
-              '(Default is to send/insert via the local broker.)')
+                   '(Default is to send/insert via the local broker.)')
 @click.option('--hashdb_path', type=click.Path(),
               default='/tmp/fps_feeds_hashdb')
 @click.option('--logfile', type=click.Path(),
@@ -110,6 +115,7 @@ def cli(dbname, direct_store, hashdb_path, logfile, sleeptime):
     else:
         main(hashdb_path, logfile, sleeptime)
 
+
 def setup_logging(logfile_path):
     """
     Set up INFO- and DEBUG-level logfiles
@@ -117,28 +123,29 @@ def setup_logging(logfile_path):
     full_date_fmt = "%y-%m-%d (%a) %H:%M:%S"
     short_date_fmt = "%H:%M:%S"
 
-
     std_formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s',
                                       short_date_fmt)
 
     named_formatter = logging.Formatter(
-                            '%(asctime)s:%(name)s:%(levelname)s:%(message)s',
-                            # '%(asctime)s:%(levelname)s:%(message)s',
-                            full_date_fmt)
+        '%(asctime)s:%(name)s:%(levelname)s:%(message)s',
+        # '%(asctime)s:%(levelname)s:%(message)s',
+        full_date_fmt)
 
-    #Get to the following size before splitting log into multiple files:
+    # Get to the following size before splitting log into multiple files:
     log_chunk_bytesize = 5e6
 
     info_logfile_path = logfile_path
-    debug_logfile_path = logfile_path+".debug"
+    debug_logfile_path = logfile_path + ".debug"
 
     info_logger = logging.handlers.RotatingFileHandler(info_logfile_path,
-                            maxBytes=log_chunk_bytesize, backupCount=10)
+                                                       maxBytes=log_chunk_bytesize,
+                                                       backupCount=10)
     info_logger.setFormatter(named_formatter)
     info_logger.setLevel(logging.INFO)
 
     debug_logger = logging.handlers.RotatingFileHandler(debug_logfile_path,
-                            maxBytes=log_chunk_bytesize, backupCount=10)
+                                                        maxBytes=log_chunk_bytesize,
+                                                        backupCount=10)
     debug_logger.setFormatter(named_formatter)
     debug_logger.setLevel(logging.DEBUG)
 
@@ -147,9 +154,9 @@ def setup_logging(logfile_path):
     # stdout_logger.setLevel(logging.INFO)
     stdout_logger.setLevel(logging.DEBUG)
 
-    #Set up root logger
+    # Set up root logger
     logger = logging.getLogger()
-    logger.handlers=[]
+    logger.handlers = []
     logger.setLevel(logging.DEBUG)
     logger.addHandler(info_logger)
     logger.addHandler(debug_logger)

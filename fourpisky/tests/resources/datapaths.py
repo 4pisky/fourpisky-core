@@ -13,3 +13,5 @@ asassn_feed_page_2016_01_11 =  os.path.join(data_dir, 'asassn_feed_2016-01-11.ht
 
 asassn_alert_16ab =  os.path.join(data_dir, '2016-01-3.62_ASASSN-16ab.xml')
 asassn_alert_AT2016D =  os.path.join(data_dir, '2016-01-2.12_AT_2016D.xml')
+
+gaia_feed_csv_2016_04_04 = os.path.join(data_dir, 'gaia_alerts.csv')
