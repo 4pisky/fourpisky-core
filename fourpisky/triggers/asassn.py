@@ -43,7 +43,7 @@ class AsassnAlert(object):
         if self.id is None:
             self.id = self.text_params.get(AsassnKeys.id_other)
         # Assigned name according to the 'why' section of voevent packet:
-        self.inferred_name = None
+        self.inferred_name = 'ASASSN @ '+self.text_params.get(AsassnKeys.detection_timestamp)
         self.isotime = voeventparse.pull_isotime(self.voevent)
 
         self.position = convert_voe_coords_to_eqposn(
