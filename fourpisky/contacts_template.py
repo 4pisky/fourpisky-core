@@ -10,6 +10,7 @@ jo = EmailContact(name='Jo Blogs', email='jo.blogs@university.ac.uk')
 
 grb_contacts = [alex, jo]
 test_contacts = [alex]
+error_contacts = [jo]
 
 local_vobroker = VoeventContact(name='local_vobroker',
                                 ipaddress='localhost', port=8098)

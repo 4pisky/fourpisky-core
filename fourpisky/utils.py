@@ -8,6 +8,9 @@ from collections import Sequence
 from ephem import Equatorial, J2000
 from fourpisky.visibility import DEG_PER_RADIAN
 import voeventparse
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def listify(x):
@@ -68,3 +71,14 @@ def sanitise_string_for_stream_id(unsafe_string):
                    s.replace('/', '_').replace('\\', '_'). \
                    replace('#', '_').replace(' ', '_')
                    if c in string.ascii_letters + string.digits + '_-:.+')
+
+def archive_voevent_to_file(v, rootdir):
+    relpath, filename = v.attrib['ivorn'].split('//')[1].split('#')
+    filename += ".xml"
+    fullpath = os.path.sep.join((rootdir, relpath, filename))
+    ensure_dir(fullpath)
+    with open(fullpath, 'w') as f:
+        voeventparse.dump(v, f)
+    logger.debug("Wrote voevent {} to {}".format(
+        v.attrib['ivorn'], fullpath
+    ))

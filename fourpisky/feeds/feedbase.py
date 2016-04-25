@@ -1,14 +1,17 @@
 from __future__ import absolute_import
-import urllib2
-import requests
-import hashlib
+
 from contextlib import closing
+import hashlib
+import logging
+import requests
 import shelve
+import urllib2
+
+from fourpisky.requiredatts import RequiredAttributesMetaclass
+from fourpisky.utils import sanitise_string_for_stream_id
 from voeventdb.server.database import session_registry
 import voeventdb.server.database.convenience as dbconvenience
-from fourpisky.feeds.requiredatts import RequiredAttributesMetaclass
-from fourpisky.utils import sanitise_string_for_stream_id
-import logging
+
 logger = logging.getLogger(__name__)
 
 

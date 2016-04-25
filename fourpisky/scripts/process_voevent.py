@@ -4,13 +4,14 @@ import voeventparse
 import logging
 import subprocess
 import click
-from fourpisky.formatting import fps_template_env
+
 from fourpisky.local import contacts
-from fourpisky.visibility import get_ephem
+from fourpisky.reports import (generate_report_text, send_report,
+                               generate_testresponse_text)
+from fourpisky.sites import AmiLA, Pt5m
 from fourpisky.triggers import swift, asassn, gaia
 from fourpisky.triggers import is_test_trigger
 from fourpisky.voevent import ivorn_base
-from fourpisky.sites import AmiLA, Pt5m
 import fourpisky as fps
 import amicomms
 
@@ -22,8 +23,6 @@ logger = logging.getLogger(__name__)
 grb_contacts = contacts.grb_contacts
 
 amicomms.email_address = contacts.test_contacts[0].email
-
-notification_email_prefix = "[4 Pi Sky] "
 
 default_archive_root = os.path.join(os.environ["HOME"],
                                     "voevent-deploy","voe_archive")
@@ -80,20 +79,24 @@ def swift_bat_grb_logic(v):
     logger.info("Swift BAT GRB packet received, actions taken:\n{}".format(
         actions_taken
     ))
-    send_alert_report(alert, actions_taken, grb_contacts)
+    report = generate_report_text(alert,active_sites,actions_taken)
+    send_report(subject=alert.full_name, text=report, contacts=grb_contacts)
 
 
 def asassn_alert_logic(v):
     actions_taken=[]
     alert = asassn.AsassnAlert(v)
     if alert.is_recent():
-        send_alert_report(alert, actions_taken, grb_contacts)
+        report = generate_report_text(alert,active_sites,actions_taken)
+        send_report(subject=alert.full_name, text=report, contacts=grb_contacts)
 
 def gaia_alert_logic(v):
     actions_taken = []
     alert = gaia.GaiaAlert(v)
     if alert.is_recent():
-        send_alert_report(alert, actions_taken, grb_contacts)
+        report = generate_report_text(alert,active_sites,actions_taken)
+        send_report(subject=alert.full_name, text=report,
+                    contacts=grb_contacts)
 
 
 #=============================================================================
@@ -120,9 +123,6 @@ def trigger_ami_swift_grb_alert(alert):
                                body_text=ami_request)
 
 
-
-
-
 def send_initial_ami_alert_vo_notification(alert):
     notification_timestamp = datetime.datetime.utcnow()
     request_status = {
@@ -137,62 +137,17 @@ def send_initial_ami_alert_vo_notification(alert):
                                  contacts.local_vobroker.port)
 
 
-def send_alert_report(alert, actions_taken, contacts):
-    notify_msg = generate_report_text(
-                                alert,
-                                active_sites,
-                                actions_taken)
-    subject = alert.id
-    if alert.inferred_name is not None:
-        subject+= ' / ' + alert.inferred_name
-    fps.comms.email.send_email([p.email for p in contacts],
-                               notification_email_prefix + subject,
-                               notify_msg)
-
-
 def test_logic(v):
     now = datetime.datetime.now(pytz.utc)
     stream_id = v.attrib['ivorn'].partition('#')[-1]
     response = fps.voevent.create_4pisky_test_response_voevent(
         stream_id=stream_id,
         date=now)
-
     fps.comms.comet.send_voevent(response, contacts.local_vobroker.ipaddress,
                                  contacts.local_vobroker.port)
-    testresponse_template = fps_template_env.get_template('test_response.j2')
-    msg_context = dict(now=now)
-    msg_context.update(fps.base_context())
-    msg = testresponse_template.render(msg_context)
-    fps.comms.email.send_email(
-        recipient_addresses=[c.email for c in contacts.test_contacts],
-        subject=notification_email_prefix + '[TEST] Test packet received',
-        body_text=msg)
-    # archive_voevent(v, rootdir=default_archive_root)
+    report = generate_testresponse_text(now)
+    send_report(subject='Test packet received', text = report,
+                contacts=contacts.test_contacts
+                )
 
-
-def archive_voevent(v, rootdir):
-    relpath, filename = v.attrib['ivorn'].split('//')[1].split('#')
-    filename += ".xml"
-    fullpath = os.path.sep.join((rootdir, relpath, filename))
-    fps.utils.ensure_dir(fullpath)
-    with open(fullpath, 'w') as f:
-        voeventparse.dump(v, f)
-    logger.debug("Wrote voevent {} to {}".format(
-        v.attrib['ivorn'], fullpath
-    ))
-
-def generate_report_text(alert, sites, actions_taken,
-                         report_timestamp=None):
-    if report_timestamp is None:
-        report_timestamp = datetime.datetime.now(pytz.utc)
-    site_reports = [(site, get_ephem(alert.position, site, report_timestamp))
-                            for site in sites]
-    notification_template = fps_template_env.get_template('notify.j2')
-    msg_context=dict(alert=alert,
-                report_timestamp=report_timestamp,
-                site_reports=site_reports,
-                actions_taken=actions_taken,)
-    msg_context.update(fps.base_context())
-    msg = notification_template.render(msg_context)
-    return msg
 

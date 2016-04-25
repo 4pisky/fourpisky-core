@@ -9,12 +9,14 @@ logging.basicConfig(level=logging.DEBUG)
 from fourpisky.tests.resources import datapaths
 from fourpisky.scripts import process_voevent as pv_mod
 
+import fourpisky.reports as reports
+
 ##We bind the email sender to a dummy function:
 pv_mod.fps.comms.email.send_email = pv_mod.fps.comms.email.dummy_email_send_function
 pv_mod.fps.comms.comet.send_voevent = pv_mod.fps.comms.comet.dummy_send_to_comet_stub
 test_prefix = "[LOCALTEST] "
-if pv_mod.notification_email_prefix[:len(test_prefix)]!=test_prefix:
-    pv_mod.notification_email_prefix = test_prefix + pv_mod.notification_email_prefix
+if reports.notification_email_prefix[:len(test_prefix)]!=test_prefix:
+    reports.notification_email_prefix = test_prefix + reports.notification_email_prefix
 pv_mod.grb_contacts = pv_mod.contacts.test_contacts  # Only notify test contacts
 pv_mod.amicomms.email_address = 'blocked!' + pv_mod.amicomms.email_address  # Do NOT email AMI
 pv_mod.default_archive_root = "./"

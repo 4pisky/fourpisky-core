@@ -1,14 +1,17 @@
 import voeventparse
-from fourpisky.utils import convert_voe_coords_to_eqposn
-from fourpisky.feeds.asassn import AsassnFeed, AsassnKeys
 from collections import OrderedDict
 import datetime
 import pytz
+from fourpisky.utils import convert_voe_coords_to_eqposn
+from fourpisky.feeds.asassn import AsassnFeed, AsassnKeys
+from fourpisky.triggers.alertbase import AlertBase
 
 default_alert_notification_period = datetime.timedelta(days=4)
 
 
-class AsassnAlert(object):
+class AsassnAlert(AlertBase):
+    type_description = "ASASSN alert"
+
     @staticmethod
     def packet_type_matches(voevent):
         ivorn = voevent.attrib['ivorn']
@@ -38,7 +41,6 @@ class AsassnAlert(object):
         self.url_params = OrderedDict(
             (k, d['value']) for k, d in url_params_grp.items())
 
-        self.description = ("ASASSN alert")
         self.id = self.text_params.get(AsassnKeys.id_asassn)
         if self.id is None:
             self.id = self.text_params.get(AsassnKeys.id_other)
@@ -49,8 +51,4 @@ class AsassnAlert(object):
         self.position = convert_voe_coords_to_eqposn(
             voeventparse.pull_astro_coords(self.voevent))
 
-    def is_recent(self):
-        now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
-        if (now - self.isotime) < self.alert_notification_period:
-            return True
-        return False
+

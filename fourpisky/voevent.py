@@ -5,11 +5,12 @@ import datetime
 import uuid
 from copy import copy
 from fourpisky._version import get_versions
+from fourpisky.local import ivorn_base
 
 fpsversion = get_versions()['version']
 
 ivo_prefix = "ivo://"
-ivorn_base = 'voevent.4pisky.org'
+
 test_trigger_substream = 'TEST-TRIGGER'
 test_response_substream = 'TEST-RESPONSE'
 alarrm_request_substream = 'ALARRM-REQUEST'

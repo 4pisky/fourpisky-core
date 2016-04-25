@@ -1,6 +1,6 @@
 import voeventparse
 from fourpisky.utils import convert_voe_coords_to_eqposn
-
+from fourpisky.triggers.alertbase import AlertBase
 
 def _swift_bool(bstring):
     """
@@ -14,8 +14,8 @@ def _swift_bool(bstring):
         raise ValueError("This string does not appear to be a SWIFT VOEvent "
                           "boolean: %s" % bstring)
 
-class BatGrb(object):
-
+class BatGrb(AlertBase):
+    type_description = "Swift BAT GRB - initial position"
     @staticmethod
     def packet_type_matches(voevent):
         ivorn = voevent.attrib['ivorn']
@@ -30,7 +30,6 @@ class BatGrb(object):
         if not BatGrb.packet_type_matches(voevent):
             raise ValueError("Cannot instantiate AsassnAlert; packet header mismatch.")
 
-        self.description = "Swift BAT GRB - initial position"
         id_long_short = self._pull_swift_bat_id()
         self.id_long = 'SWIFT' + id_long_short[0]
         self.id = 'SWIFT_' + id_long_short[1]
@@ -40,6 +39,7 @@ class BatGrb(object):
         self.params = voeventparse.pull_params(self.voevent)
         self.position = convert_voe_coords_to_eqposn(
                                        voeventparse.pull_astro_coords(self.voevent))
+        self.alert_notification_period = False
 
     def reject(self):
         """

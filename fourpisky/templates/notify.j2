@@ -1,5 +1,5 @@
 At {{ report_timestamp|datetime(dt_style) }} an alert of type:
-'{{ alert.description }}' 
+'{{ alert.type_description }}'
 was received. Synopis:
 ID: {{ alert.id }}
 {% if alert.inferred_name %}

@@ -1,13 +1,16 @@
-import voeventparse
-from fourpisky.utils import convert_voe_coords_to_eqposn
-from fourpisky.feeds.gaia import GaiaFeed, GaiaKeys
 from collections import OrderedDict
 import datetime
-import pytz
+import voeventparse
+from fourpisky.utils import convert_voe_coords_to_eqposn
+from fourpisky.feeds.gaia import GaiaFeed
+from fourpisky.triggers.alertbase import AlertBase
+
 
 default_alert_notification_period = datetime.timedelta(days=7)
 
-class GaiaAlert(object):
+class GaiaAlert(AlertBase):
+    type_description = "GAIA alert"
+
     @staticmethod
     def packet_type_matches(voevent):
         ivorn = voevent.attrib['ivorn']
@@ -27,15 +30,13 @@ class GaiaAlert(object):
             raise ValueError(
                 "Cannot instantiate GaiaAlert; packet header mismatch.")
 
-        self.description = ("GAIA alert")
-
         all_params = voeventparse.pull_params(self.voevent)
         text_params_grp = all_params[GaiaFeed.text_params_groupname]
         self.text_params = OrderedDict(
             (k, d['value']) for k, d in text_params_grp.items())
 
         self.id = self.text_params.get('Name')
-        self.inferred_name = None
+        self.inferred_name = False
 
         self.isotime = voeventparse.pull_isotime(self.voevent)
         self.position = convert_voe_coords_to_eqposn(
@@ -43,9 +44,3 @@ class GaiaAlert(object):
 
         self.url_params = {
             'GSA':'http://gsaweb.ast.cam.ac.uk/alerts/alert/'+self.id}
-
-    def is_recent(self):
-        now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
-        if (now - self.isotime) < self.alert_notification_period:
-            return True
-        return False

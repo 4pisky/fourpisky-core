@@ -12,6 +12,35 @@ import time
 import subprocess
 
 
+logger = logging.getLogger('scraper')
+
+
+def process_feed_content(feed, process_function, voevent_pause_secs):
+    new_ids = feed.determine_new_ids_from_localdb()
+    for feed_id in sorted(new_ids,
+                          key=lambda id: feed.feed_id_to_stream_id(id)):
+        try:
+            v = feed.generate_voevent(feed_id)
+            process_function(v)
+            logger.info(
+                "Processed new Voevent: {}".format(v.attrib['ivorn']))
+            # Momentary pause to avoid spamming the VOEvent network
+            time.sleep(voevent_pause_secs)
+        except KeyboardInterrupt:
+            raise
+        except subprocess.CalledProcessError:
+            logger.warning(
+                "VOEvent insertion failed for {}".format(feed_id))
+        except:
+            logger.exception(
+                "Error processing id {} in feed".format(feed_id,
+                                                        feed.url))
+    feed.save_new_hash()
+    if not new_ids:
+        logger.debug("Feed {} changed but found no new VOEvents".format(
+            feed.name
+        ))
+
 def main(hashdb_path, logfile, voevent_pause_secs,
          process_function=comet.send_voevent):
     """
@@ -28,38 +57,16 @@ def main(hashdb_path, logfile, voevent_pause_secs,
 
     """
     setup_logging(logfile)
-    logger = logging.getLogger('scraper')
     feed_list = [AsassnFeed(hashdb_path),
                  GaiaFeed(hashdb_path),
                  ]
 
     for feed in feed_list:
-        if ((feed.new_hash != feed.old_hash)
-            or feed.old_hash is None):
-            new_ids = feed.determine_new_ids_from_localdb()
-            for feed_id in sorted(new_ids,
-                                  key=lambda id: feed.feed_id_to_stream_id(id)):
-                try:
-                    v = feed.generate_voevent(feed_id)
-                    process_function(v)
-                    logger.info(
-                        "Processed new Voevent: {}".format(v.attrib['ivorn']))
-                    # Momentary pause to avoid spamming the VOEvent network
-                    time.sleep(voevent_pause_secs)
-                except KeyboardInterrupt:
-                    raise
-                except subprocess.CalledProcessError:
-                    logger.warning(
-                        "VOEvent insertion failed for {}".format(feed_id))
-                except:
-                    logger.exception(
-                        "Error processing id {} in feed".format(feed_id,
-                                                                feed.url))
-            feed.save_new_hash()
-            if not new_ids:
-                logger.debug("Feed {} changed but found no new VOEvents".format(
-                    feed.name
-                ))
+        if ((feed.old_hash is None) or (feed.new_hash != feed.old_hash)):
+            try:
+                process_feed_content(feed, process_function, voevent_pause_secs)
+            except Exception as e:
+                logger.exception("Error processing feed '{}'".format(feed.name))
         else:
             logger.debug(
                 "Hash in {} matches for feed: '{}'; moving on.".format(
