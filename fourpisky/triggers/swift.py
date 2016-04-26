@@ -19,7 +19,7 @@ class BatGrb(AlertBase):
     @staticmethod
     def packet_type_matches(voevent):
         ivorn = voevent.attrib['ivorn']
-        if ivorn.find("ivo://nasa.gsfc.gcn/SWIFT#BAT_GRB_Pos") == 0:
+        if ivorn.startswith("ivo://nasa.gsfc.gcn/SWIFT#BAT_GRB_Pos"):
             return True
         return False
 

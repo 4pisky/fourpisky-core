@@ -3,7 +3,7 @@ from fourpisky.taskqueue.app import fps_app
 import voeventparse
 from celery.utils.log import get_task_logger
 import os
-from fourpisky.scripts import process_voevent as pv_mod
+from fourpisky.scripts.process_voevent import voevent_logic
 import fourpisky.env_vars as fps_env_vars
 
 from sqlalchemy import create_engine
@@ -11,15 +11,17 @@ from sqlalchemy.orm import Session
 import voeventdb.server.database.config as dbconfig
 from voeventdb.server.database import db_utils
 import voeventdb.server.database.convenience as dbconv
+import fourpisky as fps
 
 
 # logger = logging.getLogger(__name__)
 logger = get_task_logger(__name__)
 
-dummy_email_mode = os.environ.get(fps_env_vars.use_dummy_email_stub, None)
+dummy_email_mode = os.environ.get(fps_env_vars.use_dummy_mode, None)
 if dummy_email_mode is not None:
-    pv_mod.fps.comms.email.send_email = pv_mod.fps.comms.email.dummy_email_send_function
-    logger.warning("Dummy emailer stub-function engaged!")
+    fps.comms.email.send_email = fps.comms.email.dummy_email_send_function
+    fps.comms.comet.send_voevent = fps.comms.comet.dummy_send_to_comet_stub
+    logger.warning("Dummy stub-functions engaged!")
 
 voeventdb_dbname = os.environ.get(fps_env_vars.voeventdb_dbname,
                                   dbconfig.testdb_corpus_url.database)
@@ -40,7 +42,7 @@ def process_voevent_celerytask(bytestring):
     """
     v = voeventparse.loads(bytestring)
     logger.debug("Load for processing: " + v.attrib['ivorn'])
-    pv_mod.voevent_logic(v)
+    voevent_logic(v)
     logger.info("Processed:" + v.attrib['ivorn'])
 
 

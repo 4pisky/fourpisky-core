@@ -89,6 +89,9 @@ def send_email(
     Defines the default delivery method
     """
     # send_email_by_sendgrid(recipient_addresses,subject,body_text)
+    logger.debug("Attempting to send email subject:{} to {}".format(
+        subject, recipient_addresses
+    ))
     send_email_by_smtp(recipient_addresses,subject,body_text)
 
 

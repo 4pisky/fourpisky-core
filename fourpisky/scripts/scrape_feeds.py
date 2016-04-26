@@ -1,16 +1,16 @@
 import click
+import logging
+import logging.handlers
 import os
-from fourpisky.feeds import (AsassnFeed, GaiaFeed)
-from fourpisky.comms import comet
 import sqlalchemy
+import subprocess
+import time
 from voeventdb.server.database import session_registry
 from voeventdb.server.database.models import Voevent
 import voeventdb.server.database.config as dbconfig
-import logging
-import logging.handlers
-import time
-import subprocess
-
+from fourpisky.comms import comet
+from fourpisky.feeds import (AsassnFeed, GaiaFeed)
+from fourpisky.log_config import setup_logging
 
 logger = logging.getLogger('scraper')
 
@@ -99,7 +99,7 @@ def direct_store_voevent(voevent):
 @click.option('--hashdb_path', type=click.Path(),
               default='/tmp/fps_feeds_hashdb')
 @click.option('--logfile', type=click.Path(),
-              default='scrape_feeds.log')
+              default='scrape_feeds')
 @click.option('--sleeptime', type=click.FLOAT,
               default=default_sleeptime,
               help="Delay between VOEvent Comet-sends, default='{}'".format(
@@ -123,49 +123,3 @@ def cli(dbname, direct_store, hashdb_path, logfile, sleeptime):
         main(hashdb_path, logfile, sleeptime)
 
 
-def setup_logging(logfile_path):
-    """
-    Set up INFO- and DEBUG-level logfiles
-    """
-    full_date_fmt = "%y-%m-%d (%a) %H:%M:%S"
-    short_date_fmt = "%H:%M:%S"
-
-    std_formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s',
-                                      short_date_fmt)
-
-    named_formatter = logging.Formatter(
-        '%(asctime)s:%(name)s:%(levelname)s:%(message)s',
-        # '%(asctime)s:%(levelname)s:%(message)s',
-        full_date_fmt)
-
-    # Get to the following size before splitting log into multiple files:
-    log_chunk_bytesize = 5e6
-
-    info_logfile_path = logfile_path
-    debug_logfile_path = logfile_path + ".debug"
-
-    info_logger = logging.handlers.RotatingFileHandler(info_logfile_path,
-                                                       maxBytes=log_chunk_bytesize,
-                                                       backupCount=10)
-    info_logger.setFormatter(named_formatter)
-    info_logger.setLevel(logging.INFO)
-
-    debug_logger = logging.handlers.RotatingFileHandler(debug_logfile_path,
-                                                        maxBytes=log_chunk_bytesize,
-                                                        backupCount=10)
-    debug_logger.setFormatter(named_formatter)
-    debug_logger.setLevel(logging.DEBUG)
-
-    stdout_logger = logging.StreamHandler()
-    stdout_logger.setFormatter(std_formatter)
-    # stdout_logger.setLevel(logging.INFO)
-    stdout_logger.setLevel(logging.DEBUG)
-
-    # Set up root logger
-    logger = logging.getLogger()
-    logger.handlers = []
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(info_logger)
-    logger.addHandler(debug_logger)
-    logger.addHandler(stdout_logger)
-    # logging.getLogger('iso8601').setLevel(logging.INFO) #Suppress iso8601 logging

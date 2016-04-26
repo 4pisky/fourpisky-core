@@ -9,6 +9,7 @@ logging.basicConfig(level=logging.DEBUG)
 #(If not careful you might temporarily fix a broken import - which then remains broken)
 from fourpisky.tests.resources import datapaths
 from fourpisky.scripts import process_voevent as pv_mod
+import fourpisky.log_config
 import fourpisky.reports as reports
 
 ##We bind the email sender to a dummy function:
@@ -22,6 +23,7 @@ pv_mod.amicomms.email_address = 'blocked!' + pv_mod.amicomms.email_address  # Do
 pv_mod.default_archive_root = "./"
 
 def main():
+    fourpisky.log_config.setup_logging()
     def test_packet(path):
         with open(path) as f:
             pv_mod.voevent_logic(pv_mod.voeventparse.load(f))
