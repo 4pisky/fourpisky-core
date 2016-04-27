@@ -95,8 +95,14 @@ class FeedBase(object):
         Dict mapping feed-specific event-id to relevant data.
         """
         if self._event_id_data_map is None:
-            row_list = self.parse_content_to_event_data_list()
-            self._event_id_data_map = {self.event_data_to_event_id(rd): rd for rd in row_list}
+            event_data_dicts = self.parse_content_to_event_data_list()
+            self._event_id_data_map = {}
+            for ed in event_data_dicts:
+                try:
+                    self._event_id_data_map[self.event_data_to_event_id(ed)] = ed
+                except:
+                    logger.exception(
+                        "Error trying to extract event ID from data dict: {}".format(ed))
         return self._event_id_data_map
 
     def event_data_to_event_id(self, event_data):

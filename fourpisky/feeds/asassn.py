@@ -144,7 +144,7 @@ class AsassnFeed(FeedBase):
 
     def parse_content_to_event_data_list(self):
         tree = lxml.html.fromstring(self.content)
-        events = parse_pagetree(tree)
+        events = transform_pagetree(tree)
         return events
 
 
@@ -315,7 +315,16 @@ def asassn_htmlrow_to_dict(cellrow):
             }
 
 
-def parse_pagetree(tree):
+asassn_bad_ids = [
+    'ASASSN-15uh',
+    ]
+
+def transform_pagetree(tree):
+    """
+    Restructure an array of cells into a list of dictionaries
+
+    Since parsing to this stage is robust, we also perform bad-row excision here.
+    """
     cells = extract_etree_cells(tree)
     cellrows = []
     # Stride through cells at rowlength inferred by ncols
@@ -324,5 +333,12 @@ def parse_pagetree(tree):
         row = [c for c in cells[
                           asassn_ncols * row_idx:asassn_ncols * row_idx + asassn_ncols]]
         cellrows.append(row)
-    events = [asassn_htmlrow_to_dict(cr) for cr in cellrows]
+    events = []
+    for cr in cellrows:
+        event_dict = asassn_htmlrow_to_dict(cr)
+        row_id = event_dict['param'].get(AsassnKeys.id_asassn)
+        if row_id not in asassn_bad_ids:
+            events.append(event_dict)
+        else:
+            logger.warning('Removed bad ASASSN row with ID {}'.format(row_id))
     return events
