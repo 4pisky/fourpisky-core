@@ -13,7 +13,6 @@ from voeventdb.server.database import db_utils
 import voeventdb.server.database.convenience as dbconv
 import fourpisky as fps
 
-
 # logger = logging.getLogger(__name__)
 logger = get_task_logger(__name__)
 
@@ -31,6 +30,7 @@ if not db_utils.check_database_exists(dburl):
     raise RuntimeError("voeventdb database not found: {}".format(
         voeventdb_dbname))
 dbengine = create_engine(dburl)
+
 
 @fps_app.task()
 def process_voevent_celerytask(bytestring):
@@ -58,7 +58,14 @@ def ingest_voevent_celerytask(bytestring):
         dbconv.safe_insert_voevent(session, v)
         session.commit()
     except:
-        logger.exception("Could not insert packet with ivorn {} into {}".format(
-            v.attrib['ivorn'], voeventdb_dbname))
+        if (v.attrib['role'] == voeventparse.definitions.roles.test and
+                v.attrib['ivorn'].startswith('ivo://nasa.gsfc.gcn/INTEGRAL')):
+            logger.warning(
+                "Ignoring mismatched duplicate-ivorn test events from "
+                "NASA-INTEGRAL stream")
+        else:
+            logger.exception(
+                "Could not insert packet with ivorn {} into {}".format(
+                    v.attrib['ivorn'], voeventdb_dbname))
 
     logger.info("Ingested:" + v.attrib['ivorn'])
