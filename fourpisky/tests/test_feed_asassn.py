@@ -18,7 +18,7 @@ def test_content_parsing():
     feed = asassn.AsassnFeed()
     feed._content = asassn_content_1
     events = feed.parse_content_to_event_data_list()
-    assert len(events) == 1357
+    assert len(events) == 1356
 
 def test_streamid_generation():
     feed = asassn.AsassnFeed()

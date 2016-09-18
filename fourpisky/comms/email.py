@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import smtplib
-import sendgrid
-from sendgrid import SendGridClient
+# import sendgrid
+# from sendgrid import SendGridAPIClient
 import fourpisky.utils as utils
 import logging
 
@@ -57,27 +57,27 @@ def send_email_by_smtp(recipient_addresses,
     smtpserver.close()
 
 
-def send_email_by_sendgrid(
-        recipient_addresses,
-        subject,
-        body_text,
-        sg_client=SendGridClient(contacts.sendgrid_api_key,raise_errors=True)
-    ):
-    """
-    Send an email using the Sendgrid API.
-
-    Sendgrid has no storage equivalent of a 'sent' folder,
-    so we always BCC a copy to the gmail login with the
-    "+sent" alias suffix.
-    """
-
-    message = sendgrid.Mail(to=recipient_addresses,
-                            subject=subject,
-                            html=None,
-                            text=body_text,
-                            from_email=contacts.gmail_login.username,
-                            bcc=contacts.sendgrid_bcc_address)
-    status, msg = sg_client.send(message)
+# def send_email_by_sendgrid(
+#         recipient_addresses,
+#         subject,
+#         body_text,
+#         sg_client=SendGridClient(contacts.sendgrid_api_key,raise_errors=True)
+#     ):
+#     """
+#     Send an email using the Sendgrid API.
+#
+#     Sendgrid has no storage equivalent of a 'sent' folder,
+#     so we always BCC a copy to the gmail login with the
+#     "+sent" alias suffix.
+#     """
+#
+#     message = sendgrid.Mail(to=recipient_addresses,
+#                             subject=subject,
+#                             html=None,
+#                             text=body_text,
+#                             from_email=contacts.gmail_login.username,
+#                             bcc=contacts.sendgrid_bcc_address)
+#     status, msg = sg_client.send(message)
 
 
 def send_email(
