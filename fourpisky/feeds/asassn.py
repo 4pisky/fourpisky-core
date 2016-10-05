@@ -17,6 +17,15 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+asassn_bad_ids = [
+    'ASASSN-15uh', #Datestamp has been replaced with junk
+    'ASASSN-15co', #Datestamp has been replaced with junk
+    ]
+
+
+timestamp_id_map = {
+    '2013-09-14.53': 'iPTF13dge',  # Malformed href in other id col.
+}
 
 class AsassnFeed(FeedBase):
     name = "ASASSN webpage"
@@ -151,9 +160,6 @@ class AsassnFeed(FeedBase):
 # ==========================================================================
 
 
-timestamp_id_map = {
-    '2013-09-14.53': 'iPTF13dge',  # Malformed href in other id col.
-}
 
 
 def extract_asassn_id(rowdict):
@@ -314,10 +320,6 @@ def asassn_htmlrow_to_dict(cellrow):
             'raw': cellrow
             }
 
-
-asassn_bad_ids = [
-    'ASASSN-15uh',
-    ]
 
 def transform_pagetree(tree):
     """
