@@ -16,6 +16,12 @@ logger = logging.getLogger(__name__)
 
 
 class FeedBase(object):
+    """
+    A base class to facilitate scraping a table of data from a single URL.
+
+    This can take the form of an HTML embedded table, CSV, whatever - the
+    parsing functionality should be implemented by derived classes.
+    """
     __metaclass__ = RequiredAttributesMetaclass
     _required_attributes = [
         'name',
@@ -35,6 +41,7 @@ class FeedBase(object):
     def content(self):
         if self._content is None:
             r = requests.get(self.url)
+            r.raise_for_status()
             self._content = r.content
         return self._content
 
@@ -133,7 +140,7 @@ class FeedBase(object):
         """
         raise NotImplementedError
 
-    def determine_new_ids_from_localdb(self):
+    def determine_new_entries(self):
         """
         Uses a local voeventdb to check for previously broadcast events.
 
@@ -146,6 +153,9 @@ class FeedBase(object):
         new_ids = []
         logger.debug("Checking database {} for duplicates from feed {}".format(
             s.bind.engine.url.database, self.name
+        ))
+        logger.debug("Checking {} feed entries".format(
+            len(self.event_id_data_map)
         ))
         for feed_id in self.event_id_data_map:
             ivo = self.feed_id_to_ivorn(feed_id)

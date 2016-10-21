@@ -8,7 +8,7 @@ import pytest
 
 
 
-with open(datapaths.gaia_feed_csv_2016_04_04) as f:
+with open(datapaths.gaia_feed_csv_2016_04_04, 'rb') as f:
         gaia_content = f.read()
 
 def test_content_parsing():

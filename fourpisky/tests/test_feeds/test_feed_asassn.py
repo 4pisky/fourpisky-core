@@ -79,7 +79,7 @@ def test_feed_hashing(uncreated_temporary_file_path):
 def test_localdb_deduplication(fixture_db_session):
     feed1 = asassn.AsassnFeed()
     feed1._content = asassn_content_1
-    feed1_row_ids = feed1.determine_new_ids_from_localdb()
+    feed1_row_ids = feed1.determine_new_entries()
     assert len(feed1_row_ids) == len(feed1.event_id_data_map)
 
     s = fixture_db_session
@@ -88,13 +88,13 @@ def test_localdb_deduplication(fixture_db_session):
         s.add(Voevent.from_etree(v))
     s.commit()
 
-    feed1_new_ids = feed1.determine_new_ids_from_localdb()
+    feed1_new_ids = feed1.determine_new_entries()
     assert len(feed1_new_ids) == 0
 
 
     feed2 = asassn.AsassnFeed()
     feed2._content = asassn_content_2
-    feed2_new_ids = feed2.determine_new_ids_from_localdb()
+    feed2_new_ids = feed2.determine_new_entries()
     assert len(feed2_new_ids) == len(feed2.event_id_data_map) - len(feed1.event_id_data_map)
     s = fixture_db_session
     for id in feed2_new_ids:
@@ -105,4 +105,4 @@ def test_localdb_deduplication(fixture_db_session):
     modified_content = asassn_content_2.replace('ASASSN-16ad', 'ASASSN-16adfooishbar')
     feed3 = asassn.AsassnFeed()
     feed3._content = modified_content
-    assert [] == feed3.determine_new_ids_from_localdb()
+    assert [] == feed3.determine_new_entries()

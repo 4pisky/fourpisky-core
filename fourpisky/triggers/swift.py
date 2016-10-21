@@ -31,7 +31,7 @@ class BatGrb(AlertBase):
             raise ValueError("Cannot instantiate AsassnAlert; packet header mismatch.")
 
         id_long_short = self._pull_swift_bat_id()
-        self.id_long = 'SWIFT' + id_long_short[0]
+        self.id_long = 'SWIFT_' + id_long_short[0]
         self.id = 'SWIFT_' + id_long_short[1]
         #Assigned name according to the 'why' section of voevent packet:
         self.inferred_name = self.voevent.Why.Inference.Name

@@ -3,20 +3,20 @@ import logging
 import logging.handlers
 import os
 import sqlalchemy
+import sqlalchemy.exc
 import subprocess
 import time
 from voeventdb.server.database import session_registry
 from voeventdb.server.database.models import Voevent
 import voeventdb.server.database.config as dbconfig
 from fourpisky.comms import comet
-from fourpisky.feeds import (AsassnFeed, GaiaFeed)
+from fourpisky.feeds import (AsassnFeed, GaiaFeed, create_swift_feeds)
 from fourpisky.log_config import setup_logging
-
 logger = logging.getLogger('scraper')
 
 
 def process_feed_content(feed, process_function, voevent_pause_secs):
-    new_ids = feed.determine_new_ids_from_localdb()
+    new_ids = feed.determine_new_entries()
     for feed_id in sorted(new_ids,
                           key=lambda id: feed.feed_id_to_stream_id(id)):
         try:
@@ -57,9 +57,11 @@ def main(hashdb_path, logfile, voevent_pause_secs,
 
     """
     setup_logging(logfile)
+    # feed_list = []
     feed_list = [AsassnFeed(hashdb_path),
                  GaiaFeed(hashdb_path),
                  ]
+    feed_list.extend(create_swift_feeds(hashdb_path, look_back_ndays=7))
 
     for feed in feed_list:
         if ((feed.old_hash is None) or (feed.new_hash != feed.old_hash)):
@@ -83,8 +85,12 @@ default_sleeptime = os.environ.get('FPS_FEED_SLEEPTIME',
 
 def direct_store_voevent(voevent):
     s = session_registry()
-    s.add(Voevent.from_etree(voevent))
-    s.commit()
+    try:
+        s.add(Voevent.from_etree(voevent))
+        s.commit()
+    except sqlalchemy.exc.SQLAlchemyError:
+        s.rollback()
+        raise
 
 
 @click.command()

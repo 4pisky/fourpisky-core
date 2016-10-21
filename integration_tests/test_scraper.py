@@ -19,7 +19,7 @@ session_registry.configure(
 hashdb_path = '/tmp/fps_feed_hash_testdb'
 if os.path.exists(hashdb_path):
     # Delete hash-cache every time if desired for testing:
-    # os.unlink(hashdb_path)
+    os.unlink(hashdb_path)
     pass
 
 scrape_script.main(
