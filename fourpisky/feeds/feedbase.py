@@ -27,7 +27,7 @@ class FeedBase(object):
         'name',
         'url',
         'substream',
-        'hash_byte_range', #Set to False to fetch all content
+        'hash_byte_range',  # Set to False to fetch all content
     ]
 
     def __init__(self, hash_cache_path):
@@ -55,7 +55,7 @@ class FeedBase(object):
                 return hash_cache[self.url]
             else:
                 logger.debug("Feed {} not found in hash-cache at {}".format(
-                        self.url, self.hash_cache_path
+                    self.url, self.hash_cache_path
                 ))
         return None
 
@@ -64,14 +64,14 @@ class FeedBase(object):
         if not self._new_hash:
             if self.hash_byte_range:
                 logger.debug(
-                        "Fetching bytes {start}-{end} from {url} for hash-check".format(
-                                start=self.hash_byte_range[0],
-                                end=self.hash_byte_range[1],
-                                url=self.url,
-                        ))
+                    "Fetching bytes {start}-{end} from {url} for hash-check".format(
+                        start=self.hash_byte_range[0],
+                        end=self.hash_byte_range[1],
+                        url=self.url,
+                    ))
                 req = urllib2.Request(self.url)
                 req.headers['Range'] = 'bytes={}-{}'.format(
-                        *self.hash_byte_range)
+                    *self.hash_byte_range)
                 data = urllib2.urlopen(req).read()
             else:
                 data = self.content
@@ -86,14 +86,14 @@ class FeedBase(object):
         (Used for testing.)
         """
         return hashlib.md5(
-                self._content[self.hash_byte_range[0]:self.hash_byte_range[1]]
+            self._content[self.hash_byte_range[0]:self.hash_byte_range[1]]
         ).hexdigest()
 
     def save_new_hash(self):
         with closing(shelve.open(self.hash_cache_path)) as hash_cache:
             hash_cache[self.url] = self.new_hash
         logger.debug("Inserted hash for feed {} in cache {}; md5={}".format(
-                self.url, self.hash_cache_path, self.new_hash
+            self.url, self.hash_cache_path, self.new_hash
         ))
 
     @property
@@ -106,10 +106,12 @@ class FeedBase(object):
             self._event_id_data_map = {}
             for ed in event_data_dicts:
                 try:
-                    self._event_id_data_map[self.event_data_to_event_id(ed)] = ed
+                    self._event_id_data_map[
+                        self.event_data_to_event_id(ed)] = ed
                 except:
                     logger.exception(
-                        "Error trying to extract event ID from data dict: {}".format(ed))
+                        "Error trying to extract event ID from data dict: {}".format(
+                            ed))
         return self._event_id_data_map
 
     def event_data_to_event_id(self, event_data):
@@ -124,7 +126,6 @@ class FeedBase(object):
         """
         raise NotImplementedError
 
-
     def feed_id_to_stream_id(self, feed_id):
         """
         Default implementation simply removes non-allowed characters.
@@ -134,7 +135,7 @@ class FeedBase(object):
     def feed_id_to_ivorn(self, feed_id):
         return self.stream_ivorn_prefix + self.feed_id_to_stream_id(feed_id)
 
-    def get_ivorn_prefix_for_duplicate(self, feed_id):
+    def get_ivorn_prefixes_for_duplicate(self, feed_id):
         """
         Determines what a possible duplicate ivorn might be prefixed by
         """
@@ -160,14 +161,16 @@ class FeedBase(object):
         for feed_id in self.event_id_data_map:
             ivo = self.feed_id_to_ivorn(feed_id)
             if not dbconvenience.ivorn_present(s, ivo):
-                dupes_prefix = self.get_ivorn_prefix_for_duplicate(feed_id)
-                if dbconvenience.ivorn_prefix_present(s, dupes_prefix):
-                    logger.warning(
-                            "Possible duplicate - timestamp prefixes match but "
-                            "full ivorn has changed (will not insert): {}".format(
-                                    ivo
-                            ))
-                else:
+                duplicate_prefixes = self.get_ivorn_prefixes_for_duplicate(
+                    feed_id)
+                duplicate_present = False
+                for prefix in duplicate_prefixes:
+                    if dbconvenience.ivorn_prefix_present(s, prefix):
+                        duplicate_present = True
+                        logger.warning(
+                            "Possible duplicate prefix detected: '{}', "
+                            "will not insert '{}'".format(prefix, ivo))
+                if not duplicate_present:
                     new_ids.append(feed_id)
         return new_ids
 

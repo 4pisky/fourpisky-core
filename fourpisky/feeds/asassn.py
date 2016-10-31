@@ -140,7 +140,7 @@ class AsassnFeed(FeedBase):
                            '_', external_id))
         return feed_id
 
-    def get_ivorn_prefix_for_duplicate(self, feed_id):
+    def get_ivorn_prefixes_for_duplicate(self, feed_id):
         """
         Determines what a possible duplicate ivorn might be prefixed by.
 
@@ -149,7 +149,9 @@ class AsassnFeed(FeedBase):
         (i.e. everything up to the first underscore in the stream_id).
         """
         stream_id = self.feed_id_to_stream_id(feed_id)
-        return self.stream_ivorn_prefix + stream_id.split('_', 1)[0]
+        return [
+            self.stream_ivorn_prefix + stream_id.split('_', 1)[0],
+        ]
 
     def parse_content_to_event_data_list(self):
         tree = lxml.html.fromstring(self.content)

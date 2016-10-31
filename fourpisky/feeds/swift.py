@@ -103,14 +103,14 @@ class SwiftFeed(FeedBase):
         data_snippet_type = event_data.keys()[0]
         return "{}_{}".format(self.trigger_id, data_snippet_type)
 
-    def get_ivorn_prefix_for_duplicate(self, feed_id):
+    def get_ivorn_prefixes_for_duplicate(self, feed_id):
         """
         Determines what a possible duplicate ivorn might be prefixed by.
 
         For SWIFT - events are already uniquely identified by their trigger ID.
         So we expect only exact IVORN matches:
         """
-        return self.feed_id_to_ivorn(feed_id)
+        return [self.feed_id_to_ivorn(feed_id),]
 
     def generate_voevent(self, feed_id):
         event_data = self.event_id_data_map[feed_id]

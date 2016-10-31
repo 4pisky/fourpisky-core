@@ -68,15 +68,18 @@ class GaiaFeed(FeedBase):
         """
         return event_data[GaiaKeys.name]
 
-    def get_ivorn_prefix_for_duplicate(self, feed_id):
+    def get_ivorn_prefixes_for_duplicate(self, feed_id):
         """
         Determines what a possible duplicate ivorn might be prefixed by.
 
-        For GAIA - events are already uniquely identified by their GAIA ID
-        rather than being renamed to match other event streams. So we expect
-        only exact IVORN matches:
+        For GAIA - events are already uniquely identified within a stream by
+        their GAIA ID.
+        However, we now need to also check if there has been a direct VOEvent
+        submitted from the GAIA service (vs one scraped via their CSV page):
         """
-        return self.feed_id_to_ivorn(feed_id)
+        return [self.feed_id_to_ivorn(feed_id),
+                'ivo://gaia.cam.uk/alerts#'+feed_id,
+                ]
 
     def generate_voevent(self, feed_id):
         event_data = self.event_id_data_map[feed_id]
