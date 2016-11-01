@@ -12,6 +12,7 @@ import voeventdb.server.database.config as dbconfig
 from fourpisky.comms import comet
 from fourpisky.feeds import (AsassnFeed, GaiaFeed, create_swift_feeds)
 from fourpisky.log_config import setup_logging
+
 logger = logging.getLogger('scraper')
 
 
@@ -41,6 +42,7 @@ def process_feed_content(feed, process_function, voevent_pause_secs):
             feed.name
         ))
 
+
 def main(hashdb_path, logfile, voevent_pause_secs,
          process_function=comet.send_voevent):
     """
@@ -58,9 +60,10 @@ def main(hashdb_path, logfile, voevent_pause_secs,
     """
     setup_logging(logfile)
     # feed_list = []
-    feed_list = [AsassnFeed(hashdb_path),
-                 GaiaFeed(hashdb_path),
-                 ]
+    feed_list = [
+        AsassnFeed(hashdb_path),
+        # GaiaFeed(hashdb_path),
+    ]
     # feed_list.extend(create_swift_feeds(hashdb_path, look_back_ndays=7))
 
     for feed in feed_list:
@@ -127,5 +130,3 @@ def cli(dbname, direct_store, hashdb_path, logfile, sleeptime):
              process_function=direct_store_voevent)
     else:
         main(hashdb_path, logfile, sleeptime)
-
-
