@@ -61,7 +61,7 @@ def main(hashdb_path, logfile, voevent_pause_secs,
     feed_list = [AsassnFeed(hashdb_path),
                  GaiaFeed(hashdb_path),
                  ]
-    feed_list.extend(create_swift_feeds(hashdb_path, look_back_ndays=7))
+    # feed_list.extend(create_swift_feeds(hashdb_path, look_back_ndays=7))
 
     for feed in feed_list:
         if ((feed.old_hash is None) or (feed.new_hash != feed.old_hash)):
