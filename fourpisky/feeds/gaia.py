@@ -1,21 +1,21 @@
-import voeventparse as vp
-import datetime
-import iso8601
-import astropy.time
-import contextlib
 import StringIO
+import contextlib
 import csv
-from astropy.coordinates import SkyCoord
+import datetime
+import logging
+
+import astropy.time
 import astropy.units as u
+import pytz
+import voeventparse as vp
+from astropy.coordinates import SkyCoord
+
+from fourpisky.feeds.feedbase import FeedBase
 from fourpisky.voevent import (
     create_skeleton_4pisky_voevent,
     gaia_alert_substream,
     get_stream_ivorn_prefix,
-    datetime_format_short,
 )
-
-from fourpisky.feeds.feedbase import FeedBase
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -129,6 +129,7 @@ class GaiaFeed(FeedBase):
             scale='tcb')
         # We convert to UTC, in keeping with other feeds:
         observation_time_utc_dt = observation_time_tcb.utc.datetime
+        observation_time_utc_dt = observation_time_utc_dt.replace(tzinfo=pytz.UTC)
 
         vp.add_where_when(
             v,

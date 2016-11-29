@@ -127,8 +127,8 @@ class SwiftFeed(FeedBase):
         # Simply copy the WhereWhen from the trigger event:
         v.WhereWhen = self.trigger_event.WhereWhen
         v.What.append(vp.Param("TrigID", value=self.trigger_id, ucd="meta.id"))
-        vp.add_citations(v, citations=[
-            vp.Citation(ivorn=self.trigger_event.attrib['ivorn'],
+        vp.add_citations(v, event_ivorns=[
+            vp.EventIvorn(ivorn=self.trigger_event.attrib['ivorn'],
                         cite_type=vp.definitions.cite_types.followup)
         ])
         if SwiftFeedKeys.duration in feed_id:

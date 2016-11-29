@@ -2,7 +2,7 @@ astropy
 celery[msgpack]
 comet>=2
 click
-voevent-parse>=0.9.3
+voevent-parse>=1.0.1
 requests
 voeventdb.server
 #amiobs>=0.3.2

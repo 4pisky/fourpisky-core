@@ -122,7 +122,7 @@ def create_ami_followup_notification(alert, stream_id,
                )
     voevent.Why = copy(orig_pkt.Why)
     vp.add_citations(voevent,
-                     citations=vp.Citation(ivorn=orig_pkt.attrib['ivorn'],
+                     event_ivorns=vp.EventIvorn(ivorn=orig_pkt.attrib['ivorn'],
                                            cite_type=vp.definitions.cite_types.followup))
     voevent.What.Description = "A request for AMI-LA follow-up has been made."
 
