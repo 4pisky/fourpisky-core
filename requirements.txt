@@ -14,5 +14,5 @@ pytz
 pytest
 pyephem
 #imbox
-sendgrid
+sendgrid>=3,<4
 nose

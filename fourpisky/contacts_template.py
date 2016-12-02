@@ -15,7 +15,8 @@ error_contacts = [jo]
 local_vobroker = VoeventContact(name='local_vobroker',
                                 ipaddress='localhost', port=8098)
 
-sendgrid_api_key = "Paste sendgrid API key here"
+sendgrid_api_key = None
+# sendgrid_api_key = "Paste sendgrid API key here"
 sendgrid_bcc_address = 'foo.bar+sentviasendgrid@gmail.com'
 
 gmail_login = EmailLogin(username='foo.bar@gmail.com',
