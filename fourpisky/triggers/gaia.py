@@ -38,9 +38,9 @@ class GaiaAlert(AlertBase):
         self.id = self.text_params.get('Name')
         self.inferred_name = False
 
-        self.isotime = voeventparse.pull_isotime(self.voevent)
+        self.isotime = voeventparse.get_event_time_as_utc(self.voevent)
         self.position = convert_voe_coords_to_eqposn(
-            voeventparse.pull_astro_coords(self.voevent))
+            voeventparse.get_event_position(self.voevent))
 
         self.url_params = {
             'GSA':'http://gsaweb.ast.cam.ac.uk/alerts/alert/'+self.id}

@@ -46,9 +46,9 @@ class AsassnAlert(AlertBase):
             self.id = self.text_params.get(AsassnKeys.id_other)
         # Assigned name according to the 'why' section of voevent packet:
         self.inferred_name = 'ASASSN @ '+self.text_params.get(AsassnKeys.detection_timestamp)
-        self.isotime = voeventparse.pull_isotime(self.voevent)
+        self.isotime = voeventparse.get_event_time_as_utc(self.voevent)
 
         self.position = convert_voe_coords_to_eqposn(
-            voeventparse.pull_astro_coords(self.voevent))
+            voeventparse.get_event_position(self.voevent))
 
 

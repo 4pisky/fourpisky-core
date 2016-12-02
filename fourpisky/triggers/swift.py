@@ -35,10 +35,10 @@ class BatGrb(AlertBase):
         self.id = 'SWIFT_' + id_long_short[1]
         #Assigned name according to the 'why' section of voevent packet:
         self.inferred_name = self.voevent.Why.Inference.Name
-        self.isotime = voeventparse.pull_isotime(self.voevent)
+        self.isotime = voeventparse.get_event_time_as_utc(self.voevent)
         self.params = voeventparse.pull_params(self.voevent)
         self.position = convert_voe_coords_to_eqposn(
-                                       voeventparse.pull_astro_coords(self.voevent))
+                                       voeventparse.get_event_position(self.voevent))
         self.alert_notification_period = False
 
     def reject(self):
