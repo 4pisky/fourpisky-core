@@ -113,8 +113,8 @@ def send_email(
     logger.debug("Attempting to send email subject:{} to {}".format(
         subject, recipient_addresses
     ))
-    # send_email_by_smtp(recipient_addresses, subject, body_text)
-    return send_email_by_sendgrid(recipient_addresses, subject, body_text)
+    send_email_by_smtp(recipient_addresses, subject, body_text)
+    # return send_email_by_sendgrid(recipient_addresses, subject, body_text)
 
 
 def dummy_email_send_function(recipient_addresses,
