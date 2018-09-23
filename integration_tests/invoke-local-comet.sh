@@ -11,8 +11,13 @@ PYTHONPATH=${COMET_PLUGIN_DIR}${PYTHONPATH:+:${PYTHONPATH}} \
     --receive \
     --broadcast \
     --local-ivo=$LOCALIVORN \
+    --verbose \
+    --verbose \
     --celery-queue \
-#    --verbose \
+
+#    --print-event \
+
+
 #    --remote=$REMOTE \
 #    --cmd=$HANDLER
 

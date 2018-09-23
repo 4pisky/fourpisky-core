@@ -23,10 +23,13 @@ class CeleryQueuer(object):
         """
         Add an event to the celery processing queue
         """
-        log.debug("Passing to celery: %s" % (event.attrib['ivorn'],))
-        process_voevent_celerytask.delay(event.text)
-        ingest_voevent_celerytask.delay(event.text)
+        log.debug("Passing to celery...")
+        try:
+            process_voevent_celerytask.delay(event.raw_bytes)
+            ingest_voevent_celerytask.delay(event.raw_bytes)
+        except Exception as e:
+            self.deferred.errback(e)
 
-
+        log.debug("Celery jobs sent OK.")
 # This instance of the handler is what actually constitutes our plugin.
 queue_event = CeleryQueuer()
