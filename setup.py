@@ -14,7 +14,7 @@ setup(
         include_package_data=True,
         description="Utility scripts for reacting to received VOEvent packets",
         author="Tim Staley",
-        author_email="timstaley337@gmail.com",
+        author_email="github@timstaley.co.uk",
         url="https://github.com/timstaley/fourpisky",
         install_requires=required,
         entry_points='''

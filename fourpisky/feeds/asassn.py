@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 asassn_bad_ids = [
     'ASASSN-15uh', #Datestamp has been replaced with junk
     'ASASSN-15co', #Datestamp has been replaced with junk
+    'Comet ASASSN1',  # Moving object
     ]
 
 
@@ -29,7 +30,7 @@ timestamp_id_map = {
 
 class AsassnFeed(FeedBase):
     name = "ASASSN webpage"
-    url = "http://www.astronomy.ohio-state.edu/~assassin/transients.html"
+    url = "http://www.astronomy.ohio-state.edu/asassn/transients.html"
     substream = asassn_alert_substream
     stream_ivorn_prefix = get_stream_ivorn_prefix(substream)
     hash_byte_range = (0, 10000)
@@ -181,8 +182,8 @@ def extract_asassn_id(rowdict):
         if asassn_id.startswith('ASASSN') or asassn_id.startswith('ASASN'):
             external_id = asassn_id
         else:
-            raise ValueError('Could not extract Id for this row, '
-                             'unrecognised ASASSN id format')
+            raise ValueError(
+                f'Could not extract Id for row- unrecognised id format: {asassn_id}')
     else:
         # Ensure ASASSN ID is not something weird
         assert asassn_id is None
@@ -196,7 +197,7 @@ def extract_asassn_id(rowdict):
             first_url_text_href_pair = alt_id_url[0]
             external_id = first_url_text_href_pair[0]
         else:
-            cell = rowdict['raw'][asassn_headers.index('ATEL')]
+            cell = rowdict['raw'][asassn_headers_2018.index('ATEL')]
             # print cell.text
             # print [c.text for c in cell.getchildren()]
             # print '-------------------'
@@ -221,14 +222,14 @@ def asassn_timestamp_str_to_datetime(timestamp_str):
 
 # =======================================================================
 
-asassn_headers = (
+asassn_headers_2018 = (
     'ASAS-SN',
     'Other',
     'ATEL',
     'RA',
     'Dec',
     'Discovery',
-    'V',
+    'V/g',
     'SDSS',
     'DSS',
     'Vizier',
@@ -236,7 +237,7 @@ asassn_headers = (
     'Comments'
 )
 
-asassn_ncols = len(asassn_headers)
+asassn_ncols = len(asassn_headers_2018)
 
 
 class AsassnKeys():
@@ -254,20 +255,22 @@ class AsassnKeys():
     comment = 'comment'
 
 
-asassn_key_hdr_map = {
+asassn_hdr_to_internal_key_map = {
     'ASAS-SN': AsassnKeys.id_asassn,
     'Other': AsassnKeys.id_other,
     'ATEL': AsassnKeys.atel_url,
     'RA': AsassnKeys.ra,
     'Dec': AsassnKeys.dec,
     'Discovery': AsassnKeys.detection_timestamp,
-    'V': AsassnKeys.mag_v,
+    'V/g': AsassnKeys.mag_v,
     'SDSS': AsassnKeys.sdss_url,
     'DSS': AsassnKeys.dss_url,
     'Vizier': AsassnKeys.vizier_url,
     'Spectroscopic Class': AsassnKeys.spec_class,
     'Comments': AsassnKeys.comment,
 }
+
+assert tuple(asassn_hdr_to_internal_key_map.keys()) == asassn_headers_2018
 
 asassn_url_only_keys = (
     AsassnKeys.atel_url,
@@ -291,15 +294,15 @@ def extract_etree_cells(tree):
     # We expect a multiple of assasn_ncols:
     assert (len(cells) % asassn_ncols) == 0
     # Check headers unchanged
-    assert headers == asassn_headers
+    assert headers == asassn_headers_2018
     return cells
 
 
 def asassn_htmlrow_to_dict(cellrow):
     param_dict = {}
     url_dict = defaultdict(list)
-    for idx, col_hdr in enumerate(asassn_headers):
-        param_key = asassn_key_hdr_map[col_hdr]
+    for idx, col_hdr in enumerate(asassn_headers_2018):
+        param_key = asassn_hdr_to_internal_key_map[col_hdr]
         elt = cellrow[idx]
         if elt.text and not col_hdr in asassn_url_only_keys:
             text = elt.text.strip()

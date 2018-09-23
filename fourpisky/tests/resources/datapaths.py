@@ -11,6 +11,7 @@ swift_bat_grb_bad_duration_analysis = os.path.join(data_dir, 'BAT_GRB_Pos_707545
 
 asassn_feed_page_2015_12_21 =  os.path.join(data_dir, 'asassn_feed_2015-12-21.html')
 asassn_feed_page_2016_01_11 =  os.path.join(data_dir, 'asassn_feed_2016-01-11.html')
+asassn_feed_page_2018_09_23 =  os.path.join(data_dir, 'asassn_feed_2018-09-23.html')
 
 asassn_alert_16ab =  os.path.join(data_dir, '2016-01-3.62_ASASSN-16ab.xml')
 asassn_alert_AT2016D =  os.path.join(data_dir, '2016-01-2.12_AT_2016D.xml')
