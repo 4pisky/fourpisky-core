@@ -22,12 +22,12 @@ def main():
                                 unread=True
                                 )
     imbox.logout()
-    print "Got ", len(uids), "new test message uids"
+    print("Got ", len(uids), "new test message uids")
 #     if len(uids):
 #         print "Please read/delete your self-mail before testing! -Exiting"
 #         sys.exit(1)
 
-    print "Sending new test-mail..."
+    print("Sending new test-mail...")
     email.send_email(recipient_addresses=account[acc_keys.username],
                      subject="[TEST] fourpisky INTEGRATION TEST",
                      body_text="Ima firin mah lazers!"
@@ -36,17 +36,17 @@ def main():
     imbox = make_imbox(account)
     msgs = list(imbox.messages(sent_from=account[acc_keys.username],
                                 unread=True))
-    print "Got ", len(msgs), "new test message uids"
+    print("Got ", len(msgs), "new test message uids")
     match_uids = imbox.query_uids(sent_from=account[acc_keys.username],
                                 unread=True)
-    print "Will they remain marked? Got new list of length:", len(match_uids)
-    print "Now mark as seen..."
+    print("Will they remain marked? Got new list of length:", len(match_uids))
+    print("Now mark as seen...")
     for uid in match_uids:
         imbox.mark_seen(uid)
 
     match_uids = imbox.query_uids(sent_from=account[acc_keys.username],
                                 unread=True)
-    print "Remaining unseen:", len(match_uids)
+    print("Remaining unseen:", len(match_uids))
     
     imbox.logout()
 

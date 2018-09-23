@@ -24,12 +24,12 @@ def main():
     sendpacket = dummy_packet
     # sendpacket = test_packet
 
-    print "Sending packet, ivorn: ", sendpacket.attrib['ivorn']
+    print("Sending packet, ivorn: ", sendpacket.attrib['ivorn'])
     broker = contacts.local_vobroker
     before = datetime.datetime.utcnow()
     fourpisky.comms.comet.send_voevent(sendpacket, broker.ipaddress, broker.port)
     after = datetime.datetime.utcnow()
-    print "Done. Sending took", (after - before).total_seconds(), "seconds."
+    print("Done. Sending took", (after - before).total_seconds(), "seconds.")
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

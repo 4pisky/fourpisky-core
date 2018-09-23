@@ -33,7 +33,7 @@ Alert parameters
 {% if alert.url_params is defined %}
 Relevant URLs
 -----------------
-    {% for key, value in alert.url_params.iteritems() %}
+    {% for key, value in alert.url_params.items() %}
 {{ key }}: {{ value }}
     {% endfor %}
 
