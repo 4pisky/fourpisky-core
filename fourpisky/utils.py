@@ -20,7 +20,7 @@ def listify(x):
     Used to make functions accept either scalar or array inputs -
     simply `listify` a variable to make sure it's in list format.
     """
-    if (not isinstance(x, basestring)) and isinstance(x, Sequence):
+    if (not isinstance(x, str)) and isinstance(x, Sequence):
         return x
     else:
         return [x]
@@ -77,7 +77,7 @@ def archive_voevent_to_file(v, rootdir):
     filename += ".xml"
     fullpath = os.path.sep.join((rootdir, relpath, filename))
     ensure_dir(fullpath)
-    with open(fullpath, 'w') as f:
+    with open(fullpath, 'wb') as f:
         voeventparse.dump(v, f)
     logger.debug("Wrote voevent {} to {}".format(
         v.attrib['ivorn'], fullpath

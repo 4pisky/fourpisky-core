@@ -5,7 +5,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 import fourpisky.voevent
-from fourpisky.scripts.process_voevent import archive_voevent_to_file
+from fourpisky.utils import archive_voevent_to_file
 import voeventparse
 
 def main():

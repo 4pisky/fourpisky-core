@@ -1,6 +1,6 @@
 """Various code snippets used for formatting and generating messages"""
 from __future__ import absolute_import
-import urllib
+import urllib.request, urllib.parse, urllib.error
 from fourpisky.visibility import DEG_PER_RADIAN
 
 from jinja2 import Environment, PackageLoader
@@ -21,7 +21,7 @@ def rad_to_deg(rad):
     return rad*DEG_PER_RADIAN
 
 def urlquote(url):
-    return urllib.quote_plus(url)
+    return urllib.parse.quote_plus(url)
 
 
 

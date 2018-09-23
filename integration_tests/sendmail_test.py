@@ -13,7 +13,7 @@ def main():
                     body_text=test_message)
     end = time.clock()
     elapsed = end - start
-    print "First send took", elapsed, "seconds."
+    print("First send took", elapsed, "seconds.")
     
     test_message= """Test 2 - multiple recipients"""
 
@@ -23,7 +23,7 @@ def main():
                     body_text=test_message)
     end = time.clock()
     elapsed = end - start
-    print "Second send took", elapsed, "seconds."
+    print("Second send took", elapsed, "seconds.")
 
 
 if __name__ == "__main__":

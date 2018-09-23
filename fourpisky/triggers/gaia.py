@@ -30,8 +30,8 @@ class GaiaAlert(AlertBase):
             raise ValueError(
                 "Cannot instantiate GaiaAlert; packet header mismatch.")
 
-        all_params = voeventparse.pull_params(self.voevent)
-        text_params_grp = all_params[GaiaFeed.text_params_groupname]
+        group_params = voeventparse.get_grouped_params(self.voevent)
+        text_params_grp = group_params[GaiaFeed.text_params_groupname]
         self.text_params = OrderedDict(
             (k, d['value']) for k, d in text_params_grp.items())
 

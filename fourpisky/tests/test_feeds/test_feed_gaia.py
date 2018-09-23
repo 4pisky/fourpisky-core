@@ -26,7 +26,7 @@ def test_streamid_generation():
             id = feed.event_data_to_event_id(e)
             # assert isinstance(id, string_types)
         except Exception as e:
-            print e
+            print(e)
             raise
         #     pass
 
@@ -42,5 +42,5 @@ def test_voevent_generation():
         stream_id = feed.feed_id_to_stream_id(feed_id)
         vp.assert_valid_as_v2_0(v)
         outpath = os.path.join(tmpdir,'{}.xml'.format(stream_id))
-        with open(outpath, 'w') as f:
+        with open(outpath, 'wb') as f:
             vp.dump(v, f)

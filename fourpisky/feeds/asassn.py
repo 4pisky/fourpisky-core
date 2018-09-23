@@ -167,7 +167,7 @@ class AsassnFeed(FeedBase):
 def extract_asassn_id(rowdict):
     params = rowdict['param']
     urls = rowdict['url']
-    # print params
+    # print group_params
     # print urls
 
     # Check for known-bad rows, manually resolved:
@@ -312,12 +312,13 @@ def asassn_htmlrow_to_dict(cellrow):
                             (child.text, child.attrib['href'])
                     )
     # Delete any entries which are merely placeholders, e.g. '-----'.
-    for k in param_dict.keys():
-        v = param_dict[k]
+    trimmed_params = {}
+    for k,v in param_dict.items():
         if not len(v.strip().replace('-', '')):
-            param_dict.pop(k)
+            continue # Skip this one if it's a  '------' style placeholder
+        trimmed_params[k] = v
 
-    return {'param': param_dict,
+    return {'param': trimmed_params,
             'url': url_dict,
             'raw': cellrow
             }

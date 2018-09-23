@@ -100,7 +100,7 @@ class SwiftFeed(FeedBase):
         Args:
             event_data: Feed specific datastructure, typically just a dictionary.
         """
-        data_snippet_type = event_data.keys()[0]
+        data_snippet_type = list(event_data.keys())[0]
         return "{}_{}".format(self.trigger_id, data_snippet_type)
 
     def get_ivorn_prefixes_for_duplicate(self, feed_id):

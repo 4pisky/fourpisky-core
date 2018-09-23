@@ -31,13 +31,13 @@ class AsassnAlert(AlertBase):
             raise ValueError(
                 "Cannot instantiate AsassnAlert; packet header mismatch.")
 
-        all_params = voeventparse.pull_params(self.voevent)
+        group_params = voeventparse.get_grouped_params(self.voevent)
 
-        text_params_grp = all_params[AsassnFeed.text_params_groupname]
+        text_params_grp = group_params[AsassnFeed.text_params_groupname]
         self.text_params = OrderedDict(
             (k, d['value']) for k, d in text_params_grp.items())
 
-        url_params_grp = all_params[AsassnFeed.url_params_groupname]
+        url_params_grp = group_params[AsassnFeed.url_params_groupname]
         self.url_params = OrderedDict(
             (k, d['value']) for k, d in url_params_grp.items())
 

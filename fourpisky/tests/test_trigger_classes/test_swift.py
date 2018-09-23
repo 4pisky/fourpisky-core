@@ -6,7 +6,7 @@ from fourpisky.tests.resources import datapaths
 class TestSwiftGrbFilters(TestCase):
     def setUp(self):
         def reject_packet(pkt):
-            with open(pkt) as f:
+            with open(pkt, 'rb') as f:
                 v = voeventparse.load(f)
             alert = swift.BatGrb(v)
             return alert.reject()

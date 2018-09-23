@@ -5,7 +5,7 @@ import hashlib
 import logging
 import requests
 import shelve
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 from fourpisky.requiredatts import RequiredAttributesMetaclass
 from fourpisky.utils import sanitise_string_for_stream_id
@@ -69,10 +69,10 @@ class FeedBase(object):
                         end=self.hash_byte_range[1],
                         url=self.url,
                     ))
-                req = urllib2.Request(self.url)
+                req = urllib.request.Request(self.url)
                 req.headers['Range'] = 'bytes={}-{}'.format(
                     *self.hash_byte_range)
-                data = urllib2.urlopen(req).read()
+                data = urllib.request.urlopen(req).read()
             else:
                 data = self.content
             self._new_hash = hashlib.md5(data).hexdigest()

@@ -1,4 +1,4 @@
-import StringIO
+from io import BytesIO, StringIO
 import contextlib
 import csv
 import datetime
@@ -54,7 +54,7 @@ class GaiaFeed(FeedBase):
         super(GaiaFeed, self).__init__(hash_cache_path)
 
     def parse_content_to_event_data_list(self):
-        with contextlib.closing(StringIO.StringIO(self.content)) as f:
+        with contextlib.closing(StringIO(self.content.decode())) as f:
             rdr = csv.DictReader(f)
             events = [row for row in rdr]
         return events

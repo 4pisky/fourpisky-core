@@ -20,19 +20,19 @@ class TestSiteVisReport(unittest.TestCase):
         self.template = env.get_template('includes/visibility_report.j2')
         def test_tgt(tgt):
 #            print "----------------------------"
-            print "Target: ", tgt.ra, tgt.dec
+            print("Target: ", tgt.ra, tgt.dec)
 #            print
             for site in self.sites:
                 vis = get_ephem(tgt, site, self.time)
                 site_report = self.template.render(site=site,
                                                    vis=vis,
                                                    dt_style=datetime_format_long)
-                print site_report
+                print(site_report)
 #            print "----------------------------"
 
         #Export the function to the test cases:
         self.test_tgt = test_tgt
-        print
+        print()
 
     def test_never_vis(self):
         self.test_tgt(greenwich.never_visible_source)

@@ -28,7 +28,7 @@ anti_site.name = "Antipodean"
 anti_site.horizon = 0
 
 
-vernal_equinox_2012 = datetime.datetime(2012, 03, 20,
+vernal_equinox_2012 = datetime.datetime(2012, 3, 20,
                                            5, 14,
                                            tzinfo=pytz.utc)
 

@@ -12,8 +12,8 @@ class TestAmiTargetFilters(TestCase):
             bad_src = voeventparse.load(f)
 
         good_fk5 = convert_voe_coords_to_eqposn(
-                                     voeventparse.pull_astro_coords(good_src))
+                                     voeventparse.get_event_position(good_src))
         bad_fk5 = convert_voe_coords_to_eqposn(
-                                     voeventparse.pull_astro_coords(bad_src))
+                                     voeventparse.get_event_position(bad_src))
         self.assertIsNone(filters.ami.reject(good_fk5))
         self.assertIsNotNone(filters.ami.reject(bad_fk5))
