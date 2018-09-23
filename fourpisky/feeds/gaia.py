@@ -1,4 +1,4 @@
-import StringIO
+from io import StringIO
 import contextlib
 import csv
 import datetime

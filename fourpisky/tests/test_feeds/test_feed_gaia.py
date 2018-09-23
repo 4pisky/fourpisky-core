@@ -26,7 +26,7 @@ def test_streamid_generation():
             id = feed.event_data_to_event_id(e)
             # assert isinstance(id, string_types)
         except Exception as e:
-            print e
+            print(e)
             raise
         #     pass
 

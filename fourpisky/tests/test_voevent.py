@@ -18,7 +18,7 @@ class TestFollowupVoevent(TestCase):
                           }
 
         v = vo_subs.create_ami_followup_notification(swift_alert,
-                                                     stream_id=001,
+                                                     stream_id=1,
                                                      request_status=request_status)
         vp.assert_valid_as_v2_0(v)
         with open('/tmp/test_voevent.xml', 'w') as f:

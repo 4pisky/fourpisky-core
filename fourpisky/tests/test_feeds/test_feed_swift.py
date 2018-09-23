@@ -17,7 +17,7 @@ def parse_from_voevent(voevent):
     feed = SwiftFeed(voevent)
     events = feed.parse_content_to_event_data_list()
     assert len(events) == 1
-    feed_id = feed.event_id_data_map.keys()[0]
+    feed_id = list(feed.event_id_data_map.keys())[0]
     voevent = feed.generate_voevent(feed_id)
     vp.assert_valid_as_v2_0(voevent)
     if True:
@@ -29,7 +29,7 @@ def parse_from_voevent(voevent):
 
         with open(outpath, 'w') as f:
             vp.dump(voevent, f)
-            print("Example voevent output to " + outpath)
+            print(("Example voevent output to " + outpath))
     return voevent
 
 

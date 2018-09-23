@@ -48,7 +48,7 @@ def test_assasn_voevent_generation():
         os.makedirs(tmpdir)
     feed2 = asassn.AsassnFeed()
     feed2._content = asassn_content_2
-    for feed_id in feed2.event_id_data_map.keys()[:10]:
+    for feed_id in list(feed2.event_id_data_map.keys())[:10]:
     # for feed_id in feed2.id_row_map.keys():
         v = feed2.generate_voevent(feed_id)
         stream_id = feed2.feed_id_to_stream_id(feed_id)

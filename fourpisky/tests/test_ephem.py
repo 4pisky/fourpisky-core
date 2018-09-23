@@ -48,11 +48,11 @@ class TestPyEphemSiteVisibilityCalcs(unittest.TestCase):
         self.assertEqual(later[tkeys.type], 'sometimes')
         self.assertEqual(later[tkeys.visible_now], False)
 
-        print
-        print now[tkeys.current_pos]
-        print now[tkeys.next_transit_pos]
-        print later[tkeys.current_pos]
-        print later[tkeys.next_transit_pos]
+        print()
+        print(now[tkeys.current_pos])
+        print(now[tkeys.next_transit_pos])
+        print(later[tkeys.current_pos])
+        print(later[tkeys.next_transit_pos])
 
 
 

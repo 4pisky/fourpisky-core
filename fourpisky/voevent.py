@@ -127,7 +127,7 @@ def create_ami_followup_notification(alert, stream_id,
     voevent.What.Description = "A request for AMI-LA follow-up has been made."
 
     request_params = [vp.Param(key, val)
-                      for key, val in request_status.iteritems()]
+                      for key, val in request_status.items()]
     g = vp.Group(request_params, name='request_status')
     voevent.What.append(g)
 
