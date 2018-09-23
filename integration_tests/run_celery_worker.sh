@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PYTHONPATH=./${PYTHONPATH:+:${PYTHONPATH}} \
+
 FPS_CELERY_CONFIG="celery_test_config" \
 FPS_DUMMY_MODE=1 \
 FPS_VOEVENTDB_DBNAME="voeventcache" \

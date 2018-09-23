@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function
-
 import os
 import fourpisky.env_vars as fps_env_vars
 import fourpisky.log_config as log_config

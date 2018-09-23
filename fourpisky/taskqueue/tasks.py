@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from fourpisky.taskqueue.app import fps_app
 import voeventparse
 from celery.utils.log import get_task_logger

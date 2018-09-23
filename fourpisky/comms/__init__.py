@@ -1,2 +1,2 @@
-import email
-import comet
+import fourpisky.comms.email
+import fourpisky.comms.comet
