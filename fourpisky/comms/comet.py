@@ -20,7 +20,7 @@ def send_voevent(voevent, host='localhost', port=8098):
         cmd.append('--port=' + str(port))
         output = subprocess.check_output(cmd, stdin=tf, )
     except subprocess.CalledProcessError as e:
-        logger.error("send_voevent failed, output was" + e.output)
+        logger.error(f"send_voevent failed, output was: {e.output}")
         raise e
     return output
 
