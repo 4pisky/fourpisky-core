@@ -8,10 +8,10 @@ import pytest
 
 
 
-with open(datapaths.asassn_feed_page_2015_12_21) as f:
+with open(datapaths.asassn_feed_page_2015_12_21, 'rb') as f:
         asassn_content_1 = f.read()
 
-with open(datapaths.asassn_feed_page_2016_01_11) as f:
+with open(datapaths.asassn_feed_page_2016_01_11, 'rb') as f:
         asassn_content_2 = f.read()
 
 def test_content_parsing():
@@ -54,7 +54,7 @@ def test_assasn_voevent_generation():
         stream_id = feed2.feed_id_to_stream_id(feed_id)
         vp.assert_valid_as_v2_0(v)
         outpath = os.path.join(tmpdir,'{}.xml'.format(stream_id))
-        with open(outpath, 'w') as f:
+        with open(outpath, 'wb') as f:
             vp.dump(v, f)
     # for id in id_map.keys():
     #     v = feed2.generate_voevent(id)
@@ -102,7 +102,7 @@ def test_localdb_deduplication(fixture_db_session):
         s.add(Voevent.from_etree(v))
     s.commit()
 
-    modified_content = asassn_content_2.replace('ASASSN-16ad', 'ASASSN-16adfooishbar')
+    modified_content = asassn_content_2.replace(b'ASASSN-16ad', b'ASASSN-16adfooishbar')
     feed3 = asassn.AsassnFeed()
     feed3._content = modified_content
     assert [] == feed3.determine_new_entries()

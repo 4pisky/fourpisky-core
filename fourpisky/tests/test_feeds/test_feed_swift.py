@@ -1,6 +1,7 @@
 import os
 import voeventparse as vp
 from fourpisky.feeds import SwiftFeed
+from fourpisky.feeds.swift import SwiftFeedKeys
 from fourpisky.tests.resources import datapaths
 
 import pytest
@@ -27,7 +28,7 @@ def parse_from_voevent(voevent):
             os.makedirs(tmpdir)
         outpath = os.path.join(tmpdir, '{}.xml'.format(feed_id))
 
-        with open(outpath, 'w') as f:
+        with open(outpath, 'wb') as f:
             vp.dump(voevent, f)
             print(("Example voevent output to " + outpath))
     return voevent
@@ -35,13 +36,13 @@ def parse_from_voevent(voevent):
 
 def test_good_swift_grb():
     voevent = parse_from_voevent(good_bat_grb_voevent)
-    params = vp.pull_params(voevent)
-    assert 'duration' in params
+    params = vp.get_grouped_params(voevent)
+    assert SwiftFeedKeys.duration in params
 
 def test_bad_duration_swift_grb():
     with open(datapaths.swift_bat_grb_bad_duration_analysis, 'rb') as f:
         bad_duration_voevent = vp.load(f)
     voevent = parse_from_voevent(bad_duration_voevent)
-    params = vp.pull_params(voevent)
+    params = vp.get_grouped_params(voevent)
 
 

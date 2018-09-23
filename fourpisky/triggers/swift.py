@@ -36,7 +36,7 @@ class BatGrb(AlertBase):
         #Assigned name according to the 'why' section of voevent packet:
         self.inferred_name = self.voevent.Why.Inference.Name
         self.isotime = voeventparse.get_event_time_as_utc(self.voevent)
-        self.params = voeventparse.pull_params(self.voevent)
+        self.group_params = voeventparse.get_grouped_params(self.voevent)
         self.position = convert_voe_coords_to_eqposn(
                                        voeventparse.get_event_position(self.voevent))
         self.alert_notification_period = False
@@ -45,7 +45,7 @@ class BatGrb(AlertBase):
         """
         Returns None if all ok, otherwise returns 'reason for rejection' string.
         """
-        pars = self.params
+        pars = self.group_params
         if self.startracker_lost():
             return "Alert occurred while Swift star-tracker had lost lock."
 
@@ -59,22 +59,22 @@ class BatGrb(AlertBase):
 
     def startracker_lost(self):
         return _swift_bool(
-                       self.params["Misc_Flags"]["ImTrig_during_ST_LoL"]['value'])
+                       self.group_params["Misc_Flags"]["ImTrig_during_ST_LoL"]['value'])
 
 
     def grb_identified(self):
         return _swift_bool(
-            self.params["Solution_Status"]['GRB_Identified']['value'])
+            self.group_params["Solution_Status"]['GRB_Identified']['value'])
 
 
     def tgt_in_ground_cat(self):
         return _swift_bool(
-            self.params["Solution_Status"]['Target_in_Gnd_Catalog']['value'])
+            self.group_params["Solution_Status"]['Target_in_Gnd_Catalog']['value'])
 
 
     def tgt_in_flight_cat(self):
         return _swift_bool(
-            self.params["Solution_Status"]['Target_in_Flt_Catalog']['value'])
+            self.group_params["Solution_Status"]['Target_in_Flt_Catalog']['value'])
 
 
     def _pull_swift_bat_id(self):

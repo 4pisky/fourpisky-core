@@ -8,7 +8,7 @@ Target is {{vis.type}} visible.
 Currently visible? {{vis.visible_now }}
         {% endif %}
 Timeline:
-    {% for dtime, event_name in vis.timeline.iteritems() %}
+    {% for dtime, event_name in vis.timeline.items() %}
         {{ dtime|datetime(dt_style) }}: {{ event_name }}
     {% endfor %}
 Alt-az position at next transit: {{vis.next_transit_position.0|round(3),vis.next_transit_position.1|round(3)}}
