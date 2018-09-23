@@ -1,7 +1,6 @@
 """
 Misc. convenience routines.
 """
-from __future__ import absolute_import
 import os
 import string
 from collections import Sequence

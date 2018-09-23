@@ -3,7 +3,7 @@ logger = logging.getLogger(__name__)
 
 ## Check for a private contacts module:
 try:
-    import fourpisky.contacts
+    from . import contacts
 except ImportError as e:
     logger.info("No contacts module found! "
                 "Will import template for unit-testing purposes.")
