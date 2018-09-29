@@ -1,3 +1,4 @@
+import iso8601
 from six import string_types
 from fourpisky.tests.resources import datapaths
 import fourpisky.feeds.asassn as asassn
@@ -15,7 +16,11 @@ def test_content_parsing():
     feed = asassn.AsassnFeed()
     feed._content = asassn_content_2018
     events = feed.parse_content_to_event_data_list()
-    assert len(events) == 3284
+    assert 900 == len(events)
+
+    asassn.ASASSN_EARLIEST_REPARSE_DATE = iso8601.parse_date("2010-1-1")
+    events = feed.parse_content_to_event_data_list()
+    assert 3284 == len(events)
 
 
 def test_streamid_generation():
@@ -38,8 +43,20 @@ def test_ivorn_generation_is_consistent():
     """
     feed = asassn.AsassnFeed()
     feed._content = asassn_content_2018
-    ivorn = feed.feed_id_to_ivorn('2016-01-09.28_ASASSN-16ad')
-    assert ivorn == 'ivo://voevent.4pisky.org/ASASSN#2016-01-09.28_ASASSN-16ad'
+    data_map = feed.event_id_data_map
+
+
+    test_cases = [
+        ('2016-01-09.28_ASASSN-16ad',
+         'ivo://voevent.4pisky.org/ASASSN#2016-01-09.28_ASASSN-16ad'),
+        ('2017-09-15.00_ASASSN-17mp',
+         'ivo://voevent.4pisky.org/ASASSN#2017-09-15.00_ASASSN-17mp'),
+        ('2017-10-18.30_ASASSN-17np',
+         'ivo://voevent.4pisky.org/ASASSN#2017-10-18.30_ASASSN-17np'),
+    ]
+    for native_event_id, expected_ivorn in test_cases:
+        assert native_event_id in data_map
+        assert expected_ivorn == feed.feed_id_to_ivorn(native_event_id)
 
 
 def test_assasn_voevent_generation():

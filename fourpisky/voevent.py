@@ -80,7 +80,7 @@ def create_skeleton_4pisky_voevent(substream, stream_id,
     vp.set_author(v,
                   shortName="4PiSkyBot",
                   contactName="Tim Staley",
-                  contactEmail="tim.staley@physics.ox.ac.uk",
+                  contactEmail="4pisky@timstaley.co.uk",
                   contributor=fpsversion
                   )
     return v

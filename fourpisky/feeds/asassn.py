@@ -17,16 +17,17 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-asassn_bad_ids = [
-    'ASASSN-15uh', #Datestamp has been replaced with junk
-    'ASASSN-15co', #Datestamp has been replaced with junk
+ASSASN_BAD_IDS = [
+    'ASASSN-15uh',  # Datestamp has been replaced with junk
+    'ASASSN-15co',  # Datestamp has been replaced with junk
     'Comet ASASSN1',  # Moving object
-    ]
+]
 
-
-timestamp_id_map = {
+ASASSN_TIMESTAMP_ID_MAP = {
     '2013-09-14.53': 'iPTF13dge',  # Malformed href in other id col.
 }
+
+ASASSN_EARLIEST_REPARSE_DATE=iso8601.parse_date("2017-10-18")
 
 class AsassnFeed(FeedBase):
     name = "ASASSN webpage"
@@ -58,7 +59,7 @@ class AsassnFeed(FeedBase):
         v.How.Description = "Parsed from ASASSN listings page by 4PiSky-Bot."
 
         timestamp_dt = asassn_timestamp_str_to_datetime(
-                params[AsassnKeys.detection_timestamp])
+            params[AsassnKeys.detection_timestamp])
 
         posn_sc = SkyCoord(params['ra'], params['dec'],
                            unit=(u.hourangle, u.deg))
@@ -76,10 +77,10 @@ class AsassnFeed(FeedBase):
                                     )
 
         vp.add_where_when(
-                v,
-                coords=posn_simple,
-                obs_time=timestamp_dt,
-                observatory_location=vp.definitions.observatory_location.geosurface)
+            v,
+            coords=posn_simple,
+            obs_time=timestamp_dt,
+            observatory_location=vp.definitions.observatory_location.geosurface)
         asassn_params = [vp.Param(key, params[key]) for key in
                          (AsassnKeys.id_asassn,
                           AsassnKeys.id_other,
@@ -94,14 +95,14 @@ class AsassnFeed(FeedBase):
 
         if AsassnKeys.mag_v in params:
             asassn_params.append(
-                    vp.Param(AsassnKeys.mag_v, params[AsassnKeys.mag_v],
-                             unit='mag', ucd="phot.mag",
-                             )
+                vp.Param(AsassnKeys.mag_v, params[AsassnKeys.mag_v],
+                         unit='mag', ucd="phot.mag",
+                         )
             )
         if AsassnKeys.id_other in urls:
             asassn_params.append(
-                    vp.Param(AsassnKeys.id_other,
-                             urls[AsassnKeys.id_other][0][0])
+                vp.Param(AsassnKeys.id_other,
+                         urls[AsassnKeys.id_other][0][0])
             )
         asassn_urls = [vp.Param(key, urls[key][0][1]) for key in urls]
 
@@ -124,19 +125,33 @@ class AsassnFeed(FeedBase):
         (Even if the event details are updated the timestamp should remain the
         same.)
         """
+        # OK. Fiddly date-string formatting. Aim here is to get a uniform
+        # date-time format so that anything ordered by IVORN will also
+        # be date-time ordered. Users can always check the XML content
+        # for the original ASSASSN timestamp-string.
+        # We parse-and-reformat the date-string to zero-pad the day digit as
+        # needed.
+        # Finally, we regenerate the 'decimal-days' suffix,
+        # fixed at 2 decimal places.
+        # (since some earlier events don't have this suffix at all we can't
+        # just tokenize it).
+
         external_id = extract_asassn_id(event_data)
-        # We reformat the date-string to zero-pad the day digit as needed.
+        timestamp_input_string = event_data['param'][
+            AsassnKeys.detection_timestamp]
         timestamp_dt = asassn_timestamp_str_to_datetime(
-                event_data['param'][AsassnKeys.detection_timestamp]).replace(
-            tzinfo=None)
+            timestamp_input_string).replace(tzinfo=None)
+
         uniform_date_str = timestamp_dt.strftime('%Y-%m-%d')
         start_of_day = datetime.datetime(timestamp_dt.year,
                                          timestamp_dt.month,
                                          timestamp_dt.day
                                          )
         # Friday afternoon kludge:
-        day_fraction_str = str(
-            (timestamp_dt - start_of_day).total_seconds() / 3600. / 24.)[1:]
+        day_fraction_float = (
+                (timestamp_dt - start_of_day).total_seconds() / 3600. / 24.
+        )
+        day_fraction_str = f"{day_fraction_float:.2f}"[1:]
         feed_id = ''.join((uniform_date_str, day_fraction_str,
                            '_', external_id))
         return feed_id
@@ -163,8 +178,6 @@ class AsassnFeed(FeedBase):
 # ==========================================================================
 
 
-
-
 def extract_asassn_id(rowdict):
     params = rowdict['param']
     urls = rowdict['url']
@@ -173,8 +186,8 @@ def extract_asassn_id(rowdict):
 
     # Check for known-bad rows, manually resolved:
     timestamp = params[AsassnKeys.detection_timestamp]
-    if timestamp in timestamp_id_map:
-        return timestamp_id_map[timestamp]
+    if timestamp in ASASSN_TIMESTAMP_ID_MAP:
+        return ASASSN_TIMESTAMP_ID_MAP[timestamp]
 
     # Now try to parse any vaguely reasonable data
     asassn_id = params.get(AsassnKeys.id_asassn)
@@ -312,13 +325,13 @@ def asassn_htmlrow_to_dict(cellrow):
             for child in children:
                 if 'href' in child.attrib:
                     url_dict[param_key].append(
-                            (child.text, child.attrib['href'])
+                        (child.text, child.attrib['href'])
                     )
     # Delete any entries which are merely placeholders, e.g. '-----'.
     trimmed_params = {}
-    for k,v in param_dict.items():
+    for k, v in param_dict.items():
         if not len(v.strip().replace('-', '')):
-            continue # Skip this one if it's a  '------' style placeholder
+            continue  # Skip this one if it's a  '------' style placeholder
         trimmed_params[k] = v
 
     return {'param': trimmed_params,
@@ -345,8 +358,17 @@ def transform_pagetree(tree):
     for cr in cellrows:
         event_dict = asassn_htmlrow_to_dict(cr)
         row_id = event_dict['param'].get(AsassnKeys.id_asassn)
-        if row_id not in asassn_bad_ids:
-            events.append(event_dict)
-        else:
+        if row_id in ASSASN_BAD_IDS:
             logger.warning('Removed bad ASASSN row with ID {}'.format(row_id))
+            continue
+        try:
+            row_timestamp = asassn_timestamp_str_to_datetime(
+                event_dict['param'].get(AsassnKeys.detection_timestamp)
+            )
+            if not row_timestamp > ASASSN_EARLIEST_REPARSE_DATE:
+                continue
+            events.append(event_dict)
+        except:
+            logger.exception('Error parsing rowdict:' + str(event_dict))
+            raise
     return events
