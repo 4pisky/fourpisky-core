@@ -1,4 +1,7 @@
+import datetime
 import unittest
+
+from fourpisky.reports import generate_testresponse_text
 from fourpisky.tests.resources import greenwich
 from fourpisky.visibility import get_ephem
 from fourpisky.formatting import datetime_format_long, format_datetime
@@ -40,3 +43,7 @@ class TestSiteVisReport(unittest.TestCase):
         self.test_tgt(greenwich.circumpolar_north_transit_at_ve_m1hr)
     def test_equatorial_up_now(self):
         self.test_tgt(greenwich.equatorial_transiting_at_ve)
+
+
+def test_testresponse_compose():
+    generate_testresponse_text(datetime.datetime.now())

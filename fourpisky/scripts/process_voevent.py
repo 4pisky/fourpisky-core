@@ -5,8 +5,9 @@ import os
 import subprocess
 import voeventparse
 
-import amicomms
+
 from fourpisky.local import contacts
+from fourpisky.local import amicomms_safe as amicomms
 import fourpisky.log_config
 from fourpisky.reports import (generate_report_text, send_report,
                                generate_testresponse_text)

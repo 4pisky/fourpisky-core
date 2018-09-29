@@ -1,6 +1,13 @@
-include *.txt *.py
+include *.txt *.py *.j2
+
+recursive-include fourpisky *.py *.j2
 recursive-include integration_tests *.py
+recursive-include integration_tests *.sh
 include fourpisky/tests/resources/*.xml
 
 include versioneer.py
-include fourpisky/_version.py
+
+include pytest.ini
+recursive-include comet_plugin *.py
+
+

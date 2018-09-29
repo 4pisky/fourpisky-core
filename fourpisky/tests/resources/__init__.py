@@ -3,7 +3,7 @@ import fourpisky.comms.comet
 
 import fourpisky.reports
 
-import amicomms
+from fourpisky.local import amicomms_safe
 
 
 def dearm_for_tests():
@@ -17,4 +17,5 @@ def dearm_for_tests():
         fourpisky.reports.notification_email_prefix = (
                 test_prefix + fourpisky.reports.notification_email_prefix)
 
-    amicomms.email_address = 'blocked!' + amicomms.email_address  # Do NOT email AMI
+    # Do NOT email AMI
+    amicomms_safe.email_address = 'blocked!' + amicomms_safe.email_address
